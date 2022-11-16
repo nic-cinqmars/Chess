@@ -7,7 +7,7 @@ EmptyPiece::EmptyPiece()
 	displayedChar = ' ';
 }
 
-void EmptyPiece::move()
+Movement EmptyPiece::move()
 {
-	return;
+	return Movement();
 }

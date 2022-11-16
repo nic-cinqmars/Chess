@@ -6,7 +6,8 @@ BishopPiece::BishopPiece(int color)
 	displayedChar = 'B';
 }
 
-void BishopPiece::move()
+Movement BishopPiece::move()
 {
 	// ToDo
+	return Movement();
 }

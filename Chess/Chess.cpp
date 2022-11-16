@@ -8,17 +8,33 @@ using namespace std;
 
 void IgnoreLine();
 
-int* GetPosition();
+vector<int> GetPosition();
 
 int main()
 {
 	Board board;
-	board.printBoard();
+	int playerTurn = 0;
 	do
 	{
-		int* position;
-		position = GetPosition();
-		board.checkPossibleMoves(*position, *(position + 1));
+		board.printBoard();
+		if (playerTurn == 0)
+		{
+			cout << "- White's turn to move -\n";
+		}
+		else
+		{
+			cout << "- Black's turn to move -\n";
+		}
+		bool moveWorked = false;
+		do {
+			cout << "Enter the position of the piece to move: ";
+			vector<int> pieceToMove = GetPosition();
+
+			cout << "Enter the position that the piece will move to: ";
+			vector<int> positionToGo = GetPosition();
+
+			moveWorked = board.attemptPieceMove(pieceToMove, playerTurn, positionToGo);
+		} while (!moveWorked);
 	} while (true);
 
 	return 0;
@@ -31,7 +47,7 @@ void IgnoreLine()
 }
 
 
-int* GetPosition()
+vector<int> GetPosition()
 {
 	while (true)
 	{
@@ -39,7 +55,7 @@ int* GetPosition()
 		cin >> input;
 		if (input.length() != 2)
 		{
-			cout << "Input invalid, please format it properly (Ex: A1)! Try again : ";
+			cout << "Input invalid, please format it properly (ex: A1)! Try again : ";
 		}
 		else
 		{
@@ -53,7 +69,7 @@ int* GetPosition()
 			{
 				cout << "'" << charY << "' is not a valid number! Try again : ";
 			}
-			else if (charY - '0' < 0 || charY - '0' > Board::BOARD_SIZE)
+			else if (charY - '0' < 1 || charY - '0' > Board::BOARD_SIZE)
 			{
 				cout << "'" << charY << "' is not a valid position on the board! Try again : ";
 			}
@@ -62,9 +78,8 @@ int* GetPosition()
 				IgnoreLine();
 
 				int posX = int(charX) - 65;
-				int posY = charY - '0';
-				cout << "Pos x: " << posX << " Pos y: " << posY;
-				int position[] = { posX, posY };
+				int posY = charY - '1';
+				vector<int> position = { posX, posY };
 				return position;
 			}
 		}

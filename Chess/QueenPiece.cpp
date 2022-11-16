@@ -6,7 +6,8 @@ QueenPiece::QueenPiece(int color)
 	displayedChar = 'Q';
 }
 
-void QueenPiece::move()
+Movement QueenPiece::move()
 {
 	// ToDo
+	return Movement();
 }

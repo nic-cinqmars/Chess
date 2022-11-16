@@ -134,6 +134,7 @@
     <ClCompile Include="EmptyPiece.cpp" />
     <ClCompile Include="KingPiece.cpp" />
     <ClCompile Include="KnightPiece.cpp" />
+    <ClCompile Include="Movement.cpp" />
     <ClCompile Include="PawnPiece.cpp" />
     <ClCompile Include="Piece.cpp" />
     <ClCompile Include="QueenPiece.cpp" />
@@ -146,6 +147,7 @@
     <ClInclude Include="EmptyPiece.h" />
     <ClInclude Include="KingPiece.h" />
     <ClInclude Include="KnightPiece.h" />
+    <ClInclude Include="Movement.h" />
     <ClInclude Include="PawnPiece.h" />
     <ClInclude Include="Piece.h" />
     <ClInclude Include="QueenPiece.h" />

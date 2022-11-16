@@ -5,6 +5,6 @@ class PawnPiece : public Piece
 {
 public:
 	PawnPiece(int color);
-	void move();
+	Movement move();
 };
 

@@ -6,7 +6,8 @@ KingPiece::KingPiece(int color)
 	displayedChar = 'K';
 }
 
-void KingPiece::move()
+Movement KingPiece::move()
 {
 	// ToDo
+	return Movement();
 }

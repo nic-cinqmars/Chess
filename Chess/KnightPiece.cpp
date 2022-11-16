@@ -1,12 +1,25 @@
 #include "KnightPiece.h"
 
+using namespace std;
+
 KnightPiece::KnightPiece(int color)
 {
 	this->color = color;
-	displayedChar = 'k';
+	displayedChar = 'n';
 }
 
-void KnightPiece::move()
+Movement KnightPiece::move()
 {
-	// ToDo
+	vector<vector<int>> movementVector =
+	{
+		{-1, 2},
+		{1, 2},
+		{-1, -2},
+		{1, -2},
+		{-2, 1},
+		{2, 1},
+		{-2, -1},
+		{2, -1},
+	};
+	return Movement(false, movementVector);
 }

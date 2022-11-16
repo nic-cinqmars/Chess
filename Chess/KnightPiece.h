@@ -5,6 +5,6 @@ class KnightPiece : public Piece
 {
 public:
 	KnightPiece(int color);
-	void move();
+	Movement move();
 };
 

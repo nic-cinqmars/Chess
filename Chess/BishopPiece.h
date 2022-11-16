@@ -5,6 +5,6 @@ class BishopPiece : public Piece
 {
 public:
 	BishopPiece(int color);
-	void move();
+	Movement move();
 };
 

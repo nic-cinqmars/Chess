@@ -5,6 +5,6 @@ class RookPiece : public Piece
 {
 public:
 	RookPiece(int color);
-	void move();
+	Movement move();
 };
 

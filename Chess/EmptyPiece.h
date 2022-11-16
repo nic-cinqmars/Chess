@@ -5,6 +5,6 @@ class EmptyPiece : public Piece
 {
 public:
 	EmptyPiece();
-	void move();
+	Movement move();
 };
 

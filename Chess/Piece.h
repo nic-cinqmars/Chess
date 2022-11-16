@@ -1,4 +1,6 @@
 #pragma once
+#include "Movement.h"
+
 class Piece
 {
 protected:
@@ -7,7 +9,7 @@ protected:
 	char displayedChar;
 
 public:
-	virtual void move() = 0;
+	virtual Movement move() = 0;
 	int getColor();
 	bool isEmpty();
 	char getDisplayedChar();

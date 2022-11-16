@@ -5,6 +5,6 @@ class QueenPiece : public Piece
 {
 public:
 	QueenPiece(int color);
-	void move();
+	Movement move();
 };
 

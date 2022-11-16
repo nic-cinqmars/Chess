@@ -6,7 +6,8 @@ RookPiece::RookPiece(int color)
 	displayedChar = 'R';
 }
 
-void RookPiece::move()
+Movement RookPiece::move()
 {
 	// ToDo
+	return Movement();
 }
