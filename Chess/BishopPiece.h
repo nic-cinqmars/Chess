@@ -4,7 +4,7 @@
 class BishopPiece : public Piece
 {
 public:
-	BishopPiece(int color);
-	Movement move();
+	BishopPiece(int color, std::vector<int> position);
+	std::vector<std::vector<int>> getMoves(BoardSpace board[Globals::BOARD_SIZE][Globals::BOARD_SIZE]);
 };
 

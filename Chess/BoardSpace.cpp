@@ -3,19 +3,19 @@
 BoardSpace::BoardSpace()
 {
 	color = 0;
-	this->piecePtr = new EmptyPiece();
+	piecePtr = nullptr;
 }
 
 BoardSpace::BoardSpace(int color)
 {
 	this->color = color;
-	this->piecePtr = new EmptyPiece();
+	piecePtr = nullptr;
 }
 
 BoardSpace::BoardSpace(int color, Piece* piece)
 {
 	this->color = color;
-	this->piecePtr = piece;
+	piecePtr = piece;
 }
 
 int BoardSpace::getColor()
@@ -26,4 +26,9 @@ int BoardSpace::getColor()
 Piece* BoardSpace::getPiecePtr()
 {
 	return piecePtr;
+}
+
+void BoardSpace::setPiecePtr(Piece* piece)
+{
+	piecePtr = piece;
 }

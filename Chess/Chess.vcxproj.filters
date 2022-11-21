@@ -36,9 +36,6 @@
     <ClCompile Include="PawnPiece.cpp">
       <Filter>Source Files\Pieces</Filter>
     </ClCompile>
-    <ClCompile Include="EmptyPiece.cpp">
-      <Filter>Source Files\Pieces</Filter>
-    </ClCompile>
     <ClCompile Include="KnightPiece.cpp">
       <Filter>Source Files\Pieces</Filter>
     </ClCompile>
@@ -71,9 +68,6 @@
     <ClInclude Include="PawnPiece.h">
       <Filter>Header Files\Pieces</Filter>
     </ClInclude>
-    <ClInclude Include="EmptyPiece.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
     <ClInclude Include="KnightPiece.h">
       <Filter>Header Files\Pieces</Filter>
     </ClInclude>
@@ -91,6 +85,9 @@
     </ClInclude>
     <ClInclude Include="Movement.h">
       <Filter>Header Files\Pieces</Filter>
+    </ClInclude>
+    <ClInclude Include="Globals.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,22 +1,53 @@
 #define NOMINMAX
+#define _WIN32_WINNT 0x0500
 
 #include "Board.h"
 #include <iostream>
 #include <string>
 
 using namespace std;
+using namespace Globals;
 
 void IgnoreLine();
 
 vector<int> GetPosition();
 
+Board board;
+int playerTurn = 0;
+
 int main()
 {
-	Board board;
-	int playerTurn = 0;
+	HWND console = GetConsoleWindow();
+	RECT r;
+	GetWindowRect(console, &r);
+	MoveWindow(console, r.left, r.top, 1000, 750, TRUE);
+
+	HWND consoleWindow = GetConsoleWindow();
+	SetWindowLong(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
+
+	bool newGameLoaded = true;
 	do
 	{
-		board.printBoard();
+		if (newGameLoaded)
+		{
+			board.printBoard(playerTurn);
+			cout << "Game loaded!\n";
+			cout << "Welcome to chess! Follow the instructions on screen to play.\nYou can type one of these characters at any time : (S)ave, (L)oad\n";
+			newGameLoaded = false;
+		}
+		else
+		{
+			if (playerTurn == 0)
+			{
+				playerTurn++;
+			}
+			else
+			{
+				playerTurn = 0;
+			}
+			board.printBoard(playerTurn);
+		}
+
 		if (playerTurn == 0)
 		{
 			cout << "- White's turn to move -\n";
@@ -25,15 +56,29 @@ int main()
 		{
 			cout << "- Black's turn to move -\n";
 		}
+
 		bool moveWorked = false;
+
 		do {
+			//board.checkAllColorPieceMoves(0);
 			cout << "Enter the position of the piece to move: ";
-			vector<int> pieceToMove = GetPosition();
+			vector<int> pieceToMovePosition = GetPosition();
+			if (pieceToMovePosition[0] == -1 && pieceToMovePosition[1] == -1)
+			{
+				newGameLoaded = true;
+				break;
+			}
 
 			cout << "Enter the position that the piece will move to: ";
 			vector<int> positionToGo = GetPosition();
+			// Happens when new game is loaded
+			if (pieceToMovePosition[0] == -1 && pieceToMovePosition[1] == -1)
+			{
+				newGameLoaded = true;
+				break;
+			}
 
-			moveWorked = board.attemptPieceMove(pieceToMove, playerTurn, positionToGo);
+			moveWorked = board.attemptPieceMove(pieceToMovePosition, playerTurn, positionToGo);
 		} while (!moveWorked);
 	} while (true);
 
@@ -55,7 +100,23 @@ vector<int> GetPosition()
 		cin >> input;
 		if (input.length() != 2)
 		{
-			cout << "Input invalid, please format it properly (ex: A1)! Try again : ";
+			if (input.length() == 1)
+			{
+				if (toupper(input[0]) == 'S')
+				{
+					board.saveGame(&playerTurn);
+					cout << "Game saved, continue where you left off : ";
+				}
+				if (toupper(input[0]) == 'L')
+				{
+					board.loadGame(&playerTurn);
+					return vector<int> { -1, -1 };
+				}
+			}
+			else
+			{
+				cout << "Input invalid, please format it properly (ex: A1)! Try again : ";
+			}
 		}
 		else
 		{
@@ -69,7 +130,7 @@ vector<int> GetPosition()
 			{
 				cout << "'" << charY << "' is not a valid number! Try again : ";
 			}
-			else if (charY - '0' < 1 || charY - '0' > Board::BOARD_SIZE)
+			else if (charY - '0' < 1 || charY - '0' > BOARD_SIZE)
 			{
 				cout << "'" << charY << "' is not a valid position on the board! Try again : ";
 			}

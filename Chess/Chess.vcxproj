@@ -131,7 +131,6 @@
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="BoardSpace.cpp" />
     <ClCompile Include="Chess.cpp" />
-    <ClCompile Include="EmptyPiece.cpp" />
     <ClCompile Include="KingPiece.cpp" />
     <ClCompile Include="KnightPiece.cpp" />
     <ClCompile Include="Movement.cpp" />
@@ -144,7 +143,7 @@
     <ClInclude Include="BishopPiece.h" />
     <ClInclude Include="Board.h" />
     <ClInclude Include="BoardSpace.h" />
-    <ClInclude Include="EmptyPiece.h" />
+    <ClInclude Include="Globals.h" />
     <ClInclude Include="KingPiece.h" />
     <ClInclude Include="KnightPiece.h" />
     <ClInclude Include="Movement.h" />

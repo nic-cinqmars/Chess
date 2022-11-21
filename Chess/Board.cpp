@@ -5,115 +5,242 @@
 #define BACKGROUND_BLACK		0
 
 using namespace std;
+using namespace Globals;
 
 Board::Board()
 {
-	for (int i = 0; i < BOARD_SIZE; i++)
+	string initialBoard[BOARD_SIZE][BOARD_SIZE] =
 	{
-		for (int j = 0; j < BOARD_SIZE; j++)
+		{"R1", "n1", "B1", "Q1", "K1", "B1", "n1", "R1"},
+		{"P1", "P1", "P1", "P1", "P1", "P1", "P1", "P1"},
+		{"X", "X", "X", "X", "X", "X", "X", "X"},
+		{"X", "X", "X", "X", "X", "X", "X", "X"},
+		{"X", "X", "X", "X", "X", "X", "X", "X"},
+		{"X", "X", "X", "X", "X", "X", "X", "X"},
+		{"P0", "P0", "P0", "P0", "P0", "P0", "P0", "P0"},
+		{"R0", "n0", "B0", "Q0", "K0", "B0", "n0", "R0"}
+	};
+
+	for (int y = 0; y < BOARD_SIZE; y++)
+	{
+		for (int x = 0; x < BOARD_SIZE; x++)
 		{
-			int spaceColor = (j + i) % 2;
-			if (i == 0)
-			{
-				Piece* piece;
-				switch (j)
-				{
-				case 0:
-					piece = new RookPiece(0);
-					break;
-				case 1:
-					piece = new KnightPiece(0);
-					break;
-				case 2:
-					piece = new BishopPiece(0);
-					break;
-				case 3:
-					piece = new QueenPiece(0);
-					break;
-				case 4:
-					piece = new KingPiece(0);
-					break;
-				case 5:
-					piece = new BishopPiece(0);
-					break;
-				case 6:
-					piece = new KnightPiece(0);
-					break;
-				default:
-					piece = new RookPiece(0);
-					break;
-				}
+			int spaceColor = (x + y) % 2;
+			spaces[x][y] = BoardSpace(spaceColor);
+		}
+	}
 
-				spaces[i][j] = BoardSpace(spaceColor, piece);
-			}
-			else if (i == 1)
-			{
-				spaces[i][j] = BoardSpace(spaceColor, new PawnPiece(0));
-			}
-			else if (i == 6)
-			{
-				spaces[i][j] = BoardSpace(spaceColor, new PawnPiece(1));
-			}
-			else if (i == 7)
-			{
-				Piece* piece;
-				switch (j)
-				{
-				case 0:
-					piece = new RookPiece(1);
-					break;
-				case 1:
-					piece = new KnightPiece(1);
-					break;
-				case 2:
-					piece = new BishopPiece(1);
-					break;
-				case 3:
-					piece = new QueenPiece(1);
-					break;
-				case 4:
-					piece = new KingPiece(1);
-					break;
-				case 5:
-					piece = new BishopPiece(1);
-					break;
-				case 6:
-					piece = new KnightPiece(1);
-					break;
-				default:
-					piece = new RookPiece(1);
-					break;
-				}
+	loadBoardFromString(initialBoard);
+}
 
-				spaces[i][j] = BoardSpace(spaceColor, piece);
-			}
-			else
+void Board::clearBoard()
+{
+	for (int y = 0; y < BOARD_SIZE; y++)
+	{
+		for (int x = 0; x < BOARD_SIZE; x++)
+		{
+			spaces[x][y].setPiecePtr(nullptr);
+		}
+	}
+	whitePieces.clear();
+	blackPieces.clear();
+}
+
+void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
+{
+	clearBoard();
+	for (int y = 0; y < BOARD_SIZE; y++)
+	{
+		for (int x = 0; x < BOARD_SIZE; x++)
+		{
+			int currentY = (BOARD_SIZE - 1) - y;
+			string currentPiece = board[currentY][x];
+			if (currentPiece.length() == 2)
 			{
-				spaces[i][j] = BoardSpace(spaceColor);
+				int pieceColor = currentPiece[1] - '0';
+				if (pieceColor == 0 || pieceColor == 1)
+				{
+					Piece* piece = nullptr;
+
+					switch (currentPiece[0])
+					{
+					case 'P':
+						piece = new PawnPiece(pieceColor, vector<int> {x, y});
+						break;
+					case 'R':
+						piece = new RookPiece(pieceColor, vector<int> {x, y});
+						break;
+					case 'n':
+						piece = new KnightPiece(pieceColor, vector<int> {x, y});
+						break;
+					case 'B':
+						piece = new BishopPiece(pieceColor, vector<int> {x, y});
+						break;
+					case 'Q':
+						piece = new QueenPiece(pieceColor, vector<int> {x, y});
+						break;
+					case 'K':
+						piece = new KingPiece(pieceColor, vector<int> {x, y});
+						break;
+					default:
+						break;
+					}
+
+					if (piece)
+					{
+						spaces[x][y].setPiecePtr(piece);
+					}
+				}
 			}
 		}
 	}
 }
 
-void Board::printBoard()
+void Board::saveGame(int* player)
+{
+	ofstream file;
+	file.open("game.txt");
+	for (int y = 0; y < BOARD_SIZE; y++)
+	{
+		for (int x = 0; x < BOARD_SIZE; x++)
+		{
+			Piece* piece = spaces[x][(BOARD_SIZE - 1) - y].getPiecePtr();
+			if (piece)
+			{
+				file << piece->getDisplayedChar() << piece->getColor();
+			}
+			else
+			{
+				file << "X";
+			}
+			if (x != (BOARD_SIZE - 1))
+			{
+				file << " ";
+			}
+		}
+		file << "\n";
+	}
+	file << *player;
+	file.close();
+}
+
+void Board::loadGame(int* player)
+{
+	ifstream file("game.txt");
+	string savedBoard[BOARD_SIZE][BOARD_SIZE];
+
+	if (file.is_open())
+	{
+		string line;
+		int indexY = 0;
+		while (getline(file, line))
+		{
+			if (indexY < BOARD_SIZE)
+			{
+				int indexX = 0;
+				while (line.find(" ") != string::npos)
+				{
+					if (indexX < BOARD_SIZE)
+					{
+						savedBoard[indexY][indexX] = line.substr(0, line.find(" "));
+						line.erase(0, line.find(" ") + 1);
+						indexX++;
+					}
+				}
+				savedBoard[indexY][indexX] = line;
+				indexY++;
+			}
+			else if (indexY == BOARD_SIZE)
+			{
+				*player = line[0] - '0';
+			}
+		}
+	}
+
+	loadBoardFromString(savedBoard);
+}
+
+std::vector<Piece*> Board::getPieces(int color)
+{
+	if (color == 0)
+	{
+		return whitePieces;
+	}
+	else
+	{
+		return blackPieces;
+	}
+}
+
+void Board::checkAllColorPieceMoves(int color)
+{
+	if (color == 0)
+	{
+		for (int i = 0; i < whitePieces.size(); i++)
+		{
+			cout << whitePieces[i]->getDisplayedChar() << " (W) at " << whitePieces[i]->getPosition()[0] << "," << whitePieces[i]->getPosition()[1] << "\n";
+			vector<vector<int>> moves = whitePieces[i]->getMoves(spaces);
+			for (int j = 0; j < moves.size(); j++)
+			{
+				cout << "\t" << moves[j][0] << " " << moves[j][1] << "\n";
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < blackPieces.size(); i++)
+		{
+			cout << blackPieces[i]->getDisplayedChar() << " (B) at " << blackPieces[i]->getPosition()[0] << "," << blackPieces[i]->getPosition()[1] << "\n";
+			vector<vector<int>> moves = blackPieces[i]->getMoves(spaces);
+			for (int j = 0; j < moves.size(); j++)
+			{
+				cout << "\t" << moves[j][0] << " " << moves[j][1] << "\n";
+			}
+		}
+	}
+}
+
+void Board::printBoard(int color)
 {
 	system("CLS");
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	CONSOLE_SCREEN_BUFFER_INFO baseColor;
 	GetConsoleScreenBufferInfo(hConsole, &baseColor);
-	for (int i = 0; i < BOARD_SIZE * BOARD_DISPLAY_MAGNITUDE; i++)
+	for (int y = 0; y < BOARD_SIZE * BOARD_DISPLAY_MAGNITUDE; y++)
 	{
-		if (i != 0)
+		if (y != 0)
 		{
 			cout << "\n";
 		}
-		bool emptyRow = ((i - BOARD_DISPLAY_MAGNITUDE / 2) % BOARD_DISPLAY_MAGNITUDE) != 0;
-		for (int j = 0; j < BOARD_SIZE * BOARD_DISPLAY_MAGNITUDE; j++)
+		bool emptyRow = ((y - BOARD_DISPLAY_MAGNITUDE / 2) % BOARD_DISPLAY_MAGNITUDE) != 0;
+		for (int x = 0; x < BOARD_SIZE * BOARD_DISPLAY_MAGNITUDE; x++)
 		{
-			Piece *piecePtr = spaces[(BOARD_SIZE - 1) - i / BOARD_DISPLAY_MAGNITUDE][j / BOARD_DISPLAY_MAGNITUDE].getPiecePtr();
-			char piece = piecePtr->getDisplayedChar();
-			int pieceColor = piecePtr->getColor();
-			if (spaces[i / BOARD_DISPLAY_MAGNITUDE][j / BOARD_DISPLAY_MAGNITUDE].getColor() == 1)
+			int pieceX = x / BOARD_DISPLAY_MAGNITUDE;
+			int pieceY = y / BOARD_DISPLAY_MAGNITUDE;
+			if (color == 0)
+			{
+				pieceY = (BOARD_SIZE - 1) - pieceY;
+			}
+			else
+			{
+				pieceX = (BOARD_SIZE - 1) - pieceX;
+			}
+			Piece *piecePtr = spaces[pieceX][pieceY].getPiecePtr();
+
+			char piece;
+			int pieceColor;
+			if (piecePtr)
+			{
+				piece = piecePtr->getDisplayedChar();
+				pieceColor = piecePtr->getColor();
+			}
+			else
+			{
+				piece = ' ';
+				pieceColor = spaces[x / BOARD_DISPLAY_MAGNITUDE][y / BOARD_DISPLAY_MAGNITUDE].getColor();
+			}
+
+			if (spaces[x / BOARD_DISPLAY_MAGNITUDE][y / BOARD_DISPLAY_MAGNITUDE].getColor() == 1)
 			{
 				SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE | BACKGROUND_BLACK);
 			}
@@ -123,7 +250,7 @@ void Board::printBoard()
 			}
 			if (!emptyRow)
 			{
-				bool placeEmpty = (j - BOARD_DISPLAY_MAGNITUDE / 2) % BOARD_DISPLAY_MAGNITUDE != 0;
+				bool placeEmpty = (x - BOARD_DISPLAY_MAGNITUDE / 2) % BOARD_DISPLAY_MAGNITUDE != 0;
 				if (!placeEmpty)
 				{
 					if (pieceColor == 1)
@@ -143,7 +270,19 @@ void Board::printBoard()
 			}
 			else
 			{
-				cout << "   ";
+				// Display coordinates with certain checks
+				if (x == 0 && (y + 1) % BOARD_DISPLAY_MAGNITUDE == 0)
+				{
+					cout << " " << pieceY + 1 << " ";
+				}
+				else if (y == (BOARD_SIZE * BOARD_DISPLAY_MAGNITUDE - 1) && (x + 1) % BOARD_DISPLAY_MAGNITUDE == 0)
+				{
+					cout << " " << char('a' + pieceX) << " ";
+				}
+				else
+				{
+					cout << "   ";
+				}
 			}
 		}
 	}
@@ -151,82 +290,70 @@ void Board::printBoard()
 	cout << "\n";
 }
 
-bool Board::attemptPieceMove(vector<int> pieceToMove, int player, vector<int> destination)
+void Board::getPieceMoves(vector<int> piecePosition)
 {
-	bool success = false;
-	int posX = pieceToMove[0];
-	int posY = pieceToMove[1];
-	Piece* piecePtr = spaces[posY][posX].getPiecePtr();
-	if (!piecePtr->isEmpty())
-	{
-		if (player != piecePtr->getColor())
-		{
-			cout << "Cannot move another players piece!\n";
-			return success;
-		}
+	Piece* piecePtr = spaces[piecePosition[0]][piecePosition[1]].getPiecePtr();
 
-		Movement pieceMovement = piecePtr->move();
-		vector<vector<int>> movementVector = pieceMovement.getMovementVector();
-		vector<vector<int>> possibleMovements;
-		for (int i = 0; i < movementVector.size(); i++)
+	if (piecePtr)
+	{
+		vector<vector<int>> movement = piecePtr->getMoves(spaces);
+		for (int i = 0; i < movement.size(); i++)
 		{
-			int moveX = movementVector[i][0];
-			int destPosX = posX + moveX;
-			int moveY = movementVector[i][1];
-			int destPosY = posY + moveY;
-			if (destPosX >= 0 && destPosX < BOARD_SIZE && destPosY >= 0 && destPosY < BOARD_SIZE)
-			{
-				Piece* destinationPiecePtr = spaces[destPosY][destPosX].getPiecePtr();
-				if (!destinationPiecePtr->isEmpty())
-				{
-					if (destinationPiecePtr->getColor() != piecePtr->getColor())
-					{
-						if (typeid(*destinationPiecePtr).name() != "KingPiece")
-						{
-							vector<int> position = { destPosX, destPosY };
-							possibleMovements.push_back(position);
-							if (position[0] == destination[0] && position[1] == destination[1])
-							{
-								movePiece(pieceToMove, destination);
-								success = true;
-							}
-						}
-					}
-				}
-				else
-				{
-					vector<int> position = { destPosX, destPosY };
-					possibleMovements.push_back(position);
-					if (position[0] == destination[0] && position[1] == destination[1])
-					{
-						movePiece(pieceToMove, destination);
-						success = true;
-					}
-				}
-			}
-		}
-		for (int i = 0; i < possibleMovements.size(); i++)
-		{
-			cout << "Move : " << possibleMovements[i][0] << possibleMovements[i][1] << "\n";
+			cout << "Move : " << movement[i][0] << " " << movement[i][1] << "\n";
 		}
 	}
 	else
 	{
-		cout << "No piece to move at this position!\n";
+		cout << "No piece at this location!";
+	}
+}
+
+bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector<int> destination)
+{
+	bool success = false;
+	Piece* pieceToMove = spaces[pieceToMovePosition[0]][pieceToMovePosition[1]].getPiecePtr();
+	if (pieceToMove)
+	{
+		if (pieceToMove->getColor() == player)
+		{
+			vector<vector<int>> pieceMoves = pieceToMove->getMoves(spaces);
+			for (int i = 0; i < pieceMoves.size(); i++)
+			{
+				int moveX = pieceMoves[i][0];
+				int moveY = pieceMoves[i][1];
+				if (destination[0] == moveX && destination[1] == moveY)
+				{
+					movePiece(pieceToMove, destination);
+					success = true;
+				}
+			}
+		}
+		else
+		{
+			cout << "Cannot move another player's piece!";
+		}
+	}
+	else
+	{
+		cout << "No piece at this position!";
 	}
 	return success;
 }
 
-void Board::movePiece(std::vector<int> originalPosition, std::vector<int> newPosition)
+void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 {
-	int originalX = originalPosition[0];
-	int originalY = originalPosition[1];
-	Piece* originalPiecePtr = spaces[originalY][originalX].getPiecePtr();
-
-	int newX = newPosition[0];
-	int newY = newPosition[1];
-
-	spaces[newY][newX] = BoardSpace(spaces[newY][newX].getColor(), originalPiecePtr);
-
-	spaces[originalY][originalX] = BoardSpace(spaces[originalY][originalX].getColor());
+	Piece* currentPiece = spaces[newPosition[0]][newPosition[1]].getPiecePtr();
+	if (currentPiece)
+	{
+		cout << "Deleting piece : " << currentPiece->getDisplayedChar();
+		if (currentPiece->getColor() == 0)
+		{
+			whitePieces.push_back(currentPiece);
+		}
+		else
+		{
+			blackPieces.push_back(currentPiece);
+		}
+	}
+	pieceToMove->move(spaces, newPosition);
 }

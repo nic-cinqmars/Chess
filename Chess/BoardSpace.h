@@ -1,7 +1,5 @@
 #pragma once
-#include "Piece.h"
-#include "EmptyPiece.h"
-
+class Piece;
 class BoardSpace
 {
 	int color;
@@ -17,5 +15,7 @@ public:
 	int getColor();
 
 	Piece* getPiecePtr();
+
+	void setPiecePtr(Piece* piece);
 };
 
