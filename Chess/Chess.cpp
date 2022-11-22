@@ -20,7 +20,7 @@ int main()
 	HWND console = GetConsoleWindow();
 	RECT r;
 	GetWindowRect(console, &r);
-	MoveWindow(console, r.left, r.top, 1000, 750, TRUE);
+	MoveWindow(console, r.left, r.top, 1000, 850, TRUE);
 
 	HWND consoleWindow = GetConsoleWindow();
 	SetWindowLong(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
@@ -46,6 +46,12 @@ int main()
 				playerTurn = 0;
 			}
 			board.printBoard(playerTurn);
+		}
+		vector<string> moveHistory = board.getMoveHistory();
+		if (moveHistory.size() > 0)
+		{
+			cout << "Move history:\n";
+			cout << "\t" << moveHistory[moveHistory.size() - 1] << "\n\n";
 		}
 
 		if (playerTurn == 0)

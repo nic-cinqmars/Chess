@@ -44,6 +44,7 @@ void Board::clearBoard()
 	}
 	whitePieces.clear();
 	blackPieces.clear();
+	moveHistory.clear();
 }
 
 void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
@@ -290,6 +291,11 @@ void Board::printBoard(int color)
 	cout << "\n";
 }
 
+vector<string> Board::getMoveHistory()
+{
+	return moveHistory;
+}
+
 void Board::getPieceMoves(vector<int> piecePosition)
 {
 	Piece* piecePtr = spaces[piecePosition[0]][piecePosition[1]].getPiecePtr();
@@ -355,5 +361,28 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 			blackPieces.push_back(currentPiece);
 		}
 	}
+	string move;
+	if (pieceToMove->getColor() == 0)
+	{
+		move.append("White ");
+	}
+	else
+	{
+		move.append("Black ");
+	}
+
+	move += pieceToMove->getDisplayedChar();
+	move += ": ";
+
+	move += char('A' + pieceToMove->getPosition()[0]);
+	move.append(to_string(pieceToMove->getPosition()[1] + 1));
+
+	move.append(" -> ");
+
+	move += char('A' + newPosition[0]);
+	move.append(to_string(newPosition[1] + 1));
+
+	moveHistory.push_back(move);
+
 	pieceToMove->move(spaces, newPosition);
 }

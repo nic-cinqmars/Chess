@@ -18,6 +18,7 @@ class Board
 	BoardSpace spaces[Globals::BOARD_SIZE][Globals::BOARD_SIZE];
 	std::vector<Piece*> whitePieces;
 	std::vector<Piece*> blackPieces;
+	std::vector<std::string> moveHistory;
 	void loadBoardFromString(std::string board[Globals::BOARD_SIZE][Globals::BOARD_SIZE]);
 	void clearBoard();
 
@@ -26,6 +27,7 @@ public:
 
 	void printBoard(int color);
 	void getPieceMoves(std::vector<int> piecePosition);
+	std::vector<std::string> getMoveHistory();
 	bool attemptPieceMove(std::vector<int> pieceToMovePosition, int player, std::vector<int> destination);
 	void movePiece(Piece* pieceToMove, std::vector<int> newPosition);
 	std::vector<Piece*> getPieces(int color);
