@@ -10,7 +10,12 @@ KnightPiece::KnightPiece(int color, std::vector<int> position)
 	displayedChar = 'n';
 }
 
-vector<vector<int>> KnightPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE])
+Piece* KnightPiece::clone()
+{
+	return new KnightPiece(color, position);
+}
+
+vector<vector<int>> KnightPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE], bool includeMoveOnKing)
 {
 	int currentPosX = position[0];
 	int currentPosY = position[1];
@@ -38,7 +43,7 @@ vector<vector<int>> KnightPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZ
 			Piece* destinationPiece = board[destPosX][destPosY].getPiecePtr();
 			if (destinationPiece)
 			{
-				if (destinationPiece->getDisplayedChar() != 'K')
+				if (destinationPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 				{
 					if (destinationPiece->getColor() != color)
 					{

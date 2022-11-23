@@ -56,10 +56,18 @@ int main()
 
 		if (playerTurn == 0)
 		{
+			if (board.isCheck())
+			{
+				cout << "Check";
+			}
 			cout << "- White's turn to move -\n";
 		}
 		else
 		{
+			if (board.isCheck())
+			{
+				cout << "Check";
+			}
 			cout << "- Black's turn to move -\n";
 		}
 
@@ -85,8 +93,14 @@ int main()
 			}
 
 			moveWorked = board.attemptPieceMove(pieceToMovePosition, playerTurn, positionToGo);
+			if (!moveWorked)
+			{
+				cout << "Invalid move!\n";
+			}
 		} while (!moveWorked);
-	} while (true);
+	} while (!board.isCheckmate());
+
+	cout << "Checkmate!";
 
 	return 0;
 }

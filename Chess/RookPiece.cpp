@@ -11,7 +11,12 @@ RookPiece::RookPiece(int color, vector<int> position)
 	displayedChar = 'R';
 }
 
-vector<vector<int>> RookPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE])
+Piece* RookPiece::clone()
+{
+	return new RookPiece(color, position);
+}
+
+vector<vector<int>> RookPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE], bool includeMoveOnKing)
 {
 	int currentPosX = position[0];
 	int currentPosY = position[1];
@@ -34,7 +39,7 @@ vector<vector<int>> RookPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 			Piece* destinationPiece = board[destPosX][destPosY].getPiecePtr();
 			if (destinationPiece)
 			{
-				if (destinationPiece->getDisplayedChar() != 'K')
+				if (destinationPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 				{
 					if (destinationPiece->getColor() != color)
 					{

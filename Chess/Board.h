@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -18,9 +19,12 @@ class Board
 	BoardSpace spaces[Globals::BOARD_SIZE][Globals::BOARD_SIZE];
 	std::vector<Piece*> whitePieces;
 	std::vector<Piece*> blackPieces;
+	bool check;
+	bool checkmate;
 	std::vector<std::string> moveHistory;
 	void loadBoardFromString(std::string board[Globals::BOARD_SIZE][Globals::BOARD_SIZE]);
 	void clearBoard();
+	bool checkForCheckmate(int player);
 
 public:
 	Board();
@@ -30,8 +34,12 @@ public:
 	std::vector<std::string> getMoveHistory();
 	bool attemptPieceMove(std::vector<int> pieceToMovePosition, int player, std::vector<int> destination);
 	void movePiece(Piece* pieceToMove, std::vector<int> newPosition);
+	bool willPutInCheck(Piece* pieceToMove, std::vector<int> destination);
 	std::vector<Piece*> getPieces(int color);
+	void addPiece(Piece* piece);
 	void checkAllColorPieceMoves(int color);
 	void saveGame(int* player);
 	void loadGame(int* player);
+	bool isCheck();
+	bool isCheckmate();
 };

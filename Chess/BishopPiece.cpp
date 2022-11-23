@@ -10,7 +10,12 @@ BishopPiece::BishopPiece(int color, std::vector<int> position)
 	displayedChar = 'B';
 }
 
-vector<vector<int>> BishopPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE])
+Piece* BishopPiece::clone()
+{
+	return new BishopPiece(color, position);
+}
+
+vector<vector<int>> BishopPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE], bool includeMoveOnKing)
 {
 	int currentPosX = position[0];
 	int currentPosY = position[1];
@@ -34,7 +39,7 @@ vector<vector<int>> BishopPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZ
 			Piece* destinationPiece = board[destPosX][destPosY].getPiecePtr();
 			if (destinationPiece)
 			{
-				if (destinationPiece->getDisplayedChar() != 'K')
+				if (destinationPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 				{
 					if (destinationPiece->getColor() != color)
 					{

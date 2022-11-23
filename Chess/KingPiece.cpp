@@ -10,7 +10,12 @@ KingPiece::KingPiece(int color, std::vector<int> position)
 	displayedChar = 'K';
 }
 
-vector<vector<int>> KingPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE])
+Piece* KingPiece::clone()
+{
+	return new KingPiece(color, position);
+}
+
+vector<vector<int>> KingPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE], bool includeMoveOnKing)
 {
 	int currentPosX = position[0];
 	int currentPosY = position[1];

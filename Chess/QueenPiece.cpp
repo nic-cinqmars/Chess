@@ -10,7 +10,12 @@ QueenPiece::QueenPiece(int color, std::vector<int> position)
 	displayedChar = 'Q';
 }
 
-vector<vector<int>> QueenPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE])
+Piece* QueenPiece::clone()
+{
+	return new QueenPiece(color, position);
+}
+
+vector<vector<int>> QueenPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE], bool includeMoveOnKing)
 {
 	int currentPosX = position[0];
 	int currentPosY = position[1];
@@ -38,7 +43,7 @@ vector<vector<int>> QueenPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE
 			Piece* destinationPiece = board[destPosX][destPosY].getPiecePtr();
 			if (destinationPiece)
 			{
-				if (destinationPiece->getDisplayedChar() != 'K')
+				if (destinationPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 				{
 					if (destinationPiece->getColor() != color)
 					{

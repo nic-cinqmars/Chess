@@ -11,28 +11,33 @@ PawnPiece::PawnPiece(int color, std::vector<int> position)
 	hasMoved = false;
 }
 
-vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE])
+Piece* PawnPiece::clone()
+{
+	return new PawnPiece(color, position);
+}
+
+vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE], bool includeMoveOnKing)
 {
 	int currentPosX = position[0];
 	int currentPosY = position[1];
 	vector<vector<int>> possibleMoves;
 	if (color == 0)
 	{
-		if (!hasMoved)
-		{
-			Piece* upPiece = board[currentPosX][currentPosY + 2].getPiecePtr();
-			if (!upPiece)
-			{
-				possibleMoves.push_back({ currentPosX, currentPosY + 2 });
-			}
-		}
-
 		if (currentPosY + 1 < BOARD_SIZE)
 		{
 			Piece* upPiece = board[currentPosX][currentPosY + 1].getPiecePtr();
 			if (!upPiece)
 			{
 				possibleMoves.push_back({ currentPosX, currentPosY + 1 });
+
+				if (!hasMoved)
+				{
+					Piece* upPiece2 = board[currentPosX][currentPosY + 2].getPiecePtr();
+					if (!upPiece2)
+					{
+						possibleMoves.push_back({ currentPosX, currentPosY + 2 });
+					}
+				}
 			}
 		}
 
@@ -47,9 +52,12 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 				Piece* diagonalRightPiece = board[diagonalRightX][diagonalY].getPiecePtr();
 				if (diagonalRightPiece)
 				{
-					if (diagonalRightPiece->getColor() != color)
+					if (diagonalRightPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 					{
-						possibleMoves.push_back({ currentPosX + 1, currentPosY + 1 });
+						if (diagonalRightPiece->getColor() != color)
+						{
+							possibleMoves.push_back({ currentPosX + 1, currentPosY + 1 });
+						}
 					}
 				}
 			}
@@ -58,9 +66,12 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 				Piece* diagonalLeftPiece = board[diagonalLeftX][diagonalY].getPiecePtr();
 				if (diagonalLeftPiece)
 				{
-					if (diagonalLeftPiece->getColor() != color)
+					if (diagonalLeftPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 					{
-						possibleMoves.push_back({ currentPosX - 1, currentPosY + 1 });
+						if (diagonalLeftPiece->getColor() != color)
+						{
+							possibleMoves.push_back({ currentPosX - 1, currentPosY + 1 });
+						}
 					}
 				}
 			}
@@ -68,21 +79,21 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 	}
 	else
 	{
-		if (!hasMoved)
-		{
-			Piece* downPiece = board[currentPosX][currentPosY - 2].getPiecePtr();
-			if (!downPiece)
-			{
-				possibleMoves.push_back({ currentPosX, currentPosY - 2 });
-			}
-		}
-
 		if (currentPosY - 1 >= 0)
 		{
 			Piece* downPiece = board[currentPosX][currentPosY - 1].getPiecePtr();
 			if (!downPiece)
 			{
 				possibleMoves.push_back({ currentPosX, currentPosY - 1 });
+
+				if (!hasMoved)
+				{
+					Piece* downPiece2 = board[currentPosX][currentPosY - 2].getPiecePtr();
+					if (!downPiece2)
+					{
+						possibleMoves.push_back({ currentPosX, currentPosY - 2 });
+					}
+				}
 			}
 		}
 
@@ -97,9 +108,12 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 				Piece* diagonalRightPiece = board[diagonalRightX][diagonalY].getPiecePtr();
 				if (diagonalRightPiece)
 				{
-					if (diagonalRightPiece->getColor() != color)
+					if (diagonalRightPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 					{
-						possibleMoves.push_back({ currentPosX + 1, currentPosY - 1 });
+						if (diagonalRightPiece->getColor() != color)
+						{
+							possibleMoves.push_back({ currentPosX + 1, currentPosY - 1 });
+						}
 					}
 				}
 			}
@@ -108,9 +122,12 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 				Piece* diagonalLeftPiece = board[diagonalLeftX][diagonalY].getPiecePtr();
 				if (diagonalLeftPiece)
 				{
-					if (diagonalLeftPiece->getColor() != color)
+					if (diagonalLeftPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 					{
-						possibleMoves.push_back({ currentPosX - 1, currentPosY - 1 });
+						if (diagonalLeftPiece->getColor() != color)
+						{
+							possibleMoves.push_back({ currentPosX - 1, currentPosY - 1 });
+						}
 					}
 				}
 			}

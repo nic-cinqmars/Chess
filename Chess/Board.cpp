@@ -9,6 +9,9 @@ using namespace Globals;
 
 Board::Board()
 {
+	checkmate = false;
+	check = false;
+
 	string initialBoard[BOARD_SIZE][BOARD_SIZE] =
 	{
 		{"R1", "n1", "B1", "Q1", "K1", "B1", "n1", "R1"},
@@ -89,6 +92,7 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 
 					if (piece)
 					{
+						addPiece(piece);
 						spaces[x][y].setPiecePtr(piece);
 					}
 				}
@@ -170,6 +174,18 @@ std::vector<Piece*> Board::getPieces(int color)
 	else
 	{
 		return blackPieces;
+	}
+}
+
+void Board::addPiece(Piece* piece)
+{
+	if (piece->getColor() == 0)
+	{
+		whitePieces.push_back(piece);
+	}
+	else
+	{
+		blackPieces.push_back(piece);
 	}
 }
 
@@ -320,7 +336,8 @@ bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 	Piece* pieceToMove = spaces[pieceToMovePosition[0]][pieceToMovePosition[1]].getPiecePtr();
 	if (pieceToMove)
 	{
-		if (pieceToMove->getColor() == player)
+		int pieceColor = pieceToMove->getColor();
+		if (pieceColor == player)
 		{
 			vector<vector<int>> pieceMoves = pieceToMove->getMoves(spaces);
 			for (int i = 0; i < pieceMoves.size(); i++)
@@ -329,8 +346,16 @@ bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 				int moveY = pieceMoves[i][1];
 				if (destination[0] == moveX && destination[1] == moveY)
 				{
-					movePiece(pieceToMove, destination);
-					success = true;
+					if (!willPutInCheck(pieceToMove, destination))
+					{
+						check = false;
+						movePiece(pieceToMove, destination);
+						success = true;
+					}
+					else
+					{
+						break;
+					}
 				}
 			}
 		}
@@ -346,6 +371,38 @@ bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 	return success;
 }
 
+bool Board::willPutInCheck(Piece* pieceToMove, std::vector<int> destination)
+{
+	bool check = false;
+	vector<Piece*> otherColorPieces;
+	if (pieceToMove->getColor() == 0)
+	{
+		otherColorPieces = blackPieces;
+	}
+	else
+	{
+		otherColorPieces = whitePieces;
+	}
+
+	BoardSpace tempSpaces[BOARD_SIZE][BOARD_SIZE];
+	copy(&spaces[0][0], &spaces[0][0] + BOARD_SIZE * BOARD_SIZE, &tempSpaces[0][0]);
+	Piece* pieceCopy = pieceToMove->clone();
+	pieceCopy->move(tempSpaces, destination);
+	for (int i = 0; i < otherColorPieces.size(); i++)
+	{
+		Piece* currentPiece = otherColorPieces[i];
+		if (currentPiece->getPosition() != destination)
+		{
+			check = currentPiece->checkForCheck(tempSpaces);
+			if (check)
+			{
+				break;
+			}
+		}
+	}
+	return check;
+}
+
 void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 {
 	Piece* currentPiece = spaces[newPosition[0]][newPosition[1]].getPiecePtr();
@@ -354,11 +411,13 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 		cout << "Deleting piece : " << currentPiece->getDisplayedChar();
 		if (currentPiece->getColor() == 0)
 		{
-			whitePieces.push_back(currentPiece);
+			vector<Piece*>::iterator position = find(whitePieces.begin(), whitePieces.end(), currentPiece);
+			whitePieces.erase(position);
 		}
 		else
 		{
-			blackPieces.push_back(currentPiece);
+			vector<Piece*>::iterator position = find(blackPieces.begin(), blackPieces.end(), currentPiece);
+			blackPieces.erase(position);
 		}
 	}
 	string move;
@@ -385,4 +444,48 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 	moveHistory.push_back(move);
 
 	pieceToMove->move(spaces, newPosition);
+
+	check = pieceToMove->checkForCheck(spaces);
+	if (check)
+	{
+		int otherPlayer;
+		if (pieceToMove->getColor() == 0)
+		{
+			otherPlayer = 1;
+		}
+		else
+		{
+			otherPlayer = 0;
+		}
+		checkmate = checkForCheckmate(otherPlayer);
+	}
+}
+
+bool Board::checkForCheckmate(int player)
+{
+	bool checkmate = true;
+	vector<Piece*> currentPlayerPieces = getPieces(player);
+	for (int i = 0; i < currentPlayerPieces.size(); i++)
+	{
+		vector<vector<int>> currentPieceMoves = currentPlayerPieces[i]->getMoves(spaces);
+		for (int j = 0; j < currentPieceMoves.size(); j++)
+		{
+			checkmate = willPutInCheck(currentPlayerPieces[i], currentPieceMoves[j]);
+			if (!checkmate)
+			{
+				break;
+			}
+		}
+	}
+	return checkmate;
+}
+
+bool Board::isCheck()
+{
+	return check;
+}
+
+bool Board::isCheckmate()
+{
+	return checkmate;
 }
