@@ -58,7 +58,7 @@ int main()
 		{
 			if (board.isCheck())
 			{
-				cout << "Check";
+				cout << "White is put in check!\n";
 			}
 			cout << "- White's turn to move -\n";
 		}
@@ -66,7 +66,7 @@ int main()
 		{
 			if (board.isCheck())
 			{
-				cout << "Check";
+				cout << "Black is put in check!\n";
 			}
 			cout << "- Black's turn to move -\n";
 		}

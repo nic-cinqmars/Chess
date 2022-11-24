@@ -25,6 +25,7 @@ class Board
 	void loadBoardFromString(std::string board[Globals::BOARD_SIZE][Globals::BOARD_SIZE]);
 	void clearBoard();
 	bool checkForCheckmate(int player);
+	Piece* promotePawn(Piece* pawn);
 
 public:
 	Board();

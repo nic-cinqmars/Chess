@@ -42,7 +42,8 @@ void Board::clearBoard()
 	{
 		for (int x = 0; x < BOARD_SIZE; x++)
 		{
-			spaces[x][y].setPiecePtr(nullptr);
+			int spaceColor = (x + y) % 2;
+			spaces[x][y] = BoardSpace(spaceColor);
 		}
 	}
 	whitePieces.clear();
@@ -53,6 +54,8 @@ void Board::clearBoard()
 void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 {
 	clearBoard();
+	vector<KingPiece*> kingPieces;
+
 	for (int y = 0; y < BOARD_SIZE; y++)
 	{
 		for (int x = 0; x < BOARD_SIZE; x++)
@@ -85,6 +88,7 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 						break;
 					case 'K':
 						piece = new KingPiece(pieceColor, vector<int> {x, y});
+						kingPieces.push_back(dynamic_cast<KingPiece*>(piece));
 						break;
 					default:
 						break;
@@ -98,6 +102,16 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 				}
 			}
 		}
+	}
+
+	if (kingPieces.size() != 2)
+	{
+		// problem
+	}
+	else
+	{
+		kingPieces[0]->setGuardedByKing(spaces);
+		kingPieces[1]->setGuardedByKing(spaces);
 	}
 }
 
@@ -443,6 +457,30 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 
 	moveHistory.push_back(move);
 
+	if (pieceToMove->getDisplayedChar() == 'P')
+	{
+		if (pieceToMove->getColor() == 0)
+		{
+			if (newPosition[1] == BOARD_SIZE - 1)
+			{
+				vector<Piece*>::iterator position = find(whitePieces.begin(), whitePieces.end(), pieceToMove);
+				whitePieces.erase(position);
+				pieceToMove = promotePawn(pieceToMove);
+				whitePieces.push_back(pieceToMove);
+			}
+		}
+		else
+		{
+			if (newPosition[1] == 0)
+			{
+				vector<Piece*>::iterator position = find(blackPieces.begin(), blackPieces.end(), pieceToMove);
+				blackPieces.erase(position);
+				pieceToMove = promotePawn(pieceToMove);
+				blackPieces.push_back(pieceToMove);
+			}
+		}
+	}
+
 	pieceToMove->move(spaces, newPosition);
 
 	check = pieceToMove->checkForCheck(spaces);
@@ -459,6 +497,40 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 		}
 		checkmate = checkForCheckmate(otherPlayer);
 	}
+}
+
+Piece* Board::promotePawn(Piece* pawn)
+{
+	Piece* newPiece = nullptr;
+	cout << "Enter the piece which the pawn will promote to (n, B, R or Q) : ";
+	do
+	{
+		string input;
+		cin >> input;
+		if (!input.empty())
+		{
+			switch (toupper(input[0]))
+			{
+				case 'N':
+					newPiece = new KnightPiece(pawn->getColor(), pawn->getPosition());
+					break;
+				case 'B':
+					newPiece = new BishopPiece(pawn->getColor(), pawn->getPosition());
+					break;
+				case 'R':
+					newPiece = new RookPiece(pawn->getColor(), pawn->getPosition());
+					break;
+				case 'Q':
+					newPiece = new QueenPiece(pawn->getColor(), pawn->getPosition());
+					break;
+				default :
+					cout << "Invalid piece! Try again : ";
+					break;
+			}
+
+		}
+	} while (!newPiece);
+	return newPiece;
 }
 
 bool Board::checkForCheckmate(int player)

@@ -1,2 +1,12 @@
-﻿  Board.cpp
+﻿  BishopPiece.cpp
+  Board.cpp
+  BoardSpace.cpp
+  Chess.cpp
+  KingPiece.cpp
+  KnightPiece.cpp
+  PawnPiece.cpp
+  Piece.cpp
+  QueenPiece.cpp
+  RookPiece.cpp
+  Generating Code...
   Chess.vcxproj -> C:\Users\Burger\Desktop\Chess\Chess\x64\Debug\Chess.exe
