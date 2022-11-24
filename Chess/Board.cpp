@@ -467,6 +467,10 @@ bool Board::checkForCheckmate(int player)
 	vector<Piece*> currentPlayerPieces = getPieces(player);
 	for (int i = 0; i < currentPlayerPieces.size(); i++)
 	{
+		if (!checkmate)
+		{
+			break;
+		}
 		vector<vector<int>> currentPieceMoves = currentPlayerPieces[i]->getMoves(spaces);
 		for (int j = 0; j < currentPieceMoves.size(); j++)
 		{
