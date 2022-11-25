@@ -60,6 +60,17 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 						}
 					}
 				}
+				else
+				{
+					PawnPiece* rightPawn = dynamic_cast<PawnPiece*>(board[diagonalRightX][currentPosY].getPiecePtr());
+					if (rightPawn)
+					{
+						if (rightPawn->isEnPassant())
+						{
+							possibleMoves.push_back({ currentPosX + 1, currentPosY + 1 });
+						}
+					}
+				}
 			}
 			if (diagonalLeftX >= 0)
 			{
@@ -69,6 +80,17 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 					if (diagonalLeftPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 					{
 						if (diagonalLeftPiece->getColor() != color)
+						{
+							possibleMoves.push_back({ currentPosX - 1, currentPosY + 1 });
+						}
+					}
+				}
+				else
+				{
+					PawnPiece* leftPawn = dynamic_cast<PawnPiece*>(board[diagonalLeftX][currentPosY].getPiecePtr());
+					if (leftPawn)
+					{
+						if (leftPawn->isEnPassant())
 						{
 							possibleMoves.push_back({ currentPosX - 1, currentPosY + 1 });
 						}
@@ -116,6 +138,17 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 						}
 					}
 				}
+				else
+				{
+					PawnPiece* rightPawn = dynamic_cast<PawnPiece*>(board[diagonalRightX][currentPosY].getPiecePtr());
+					if (rightPawn)
+					{
+						if (rightPawn->isEnPassant())
+						{
+							possibleMoves.push_back({ currentPosX + 1, currentPosY - 1 });
+						}
+					}
+				}
 			}
 			if (diagonalLeftX >= 0)
 			{
@@ -125,6 +158,17 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 					if (diagonalLeftPiece->getDisplayedChar() != 'K' || includeMoveOnKing)
 					{
 						if (diagonalLeftPiece->getColor() != color)
+						{
+							possibleMoves.push_back({ currentPosX - 1, currentPosY - 1 });
+						}
+					}
+				}
+				else
+				{
+					PawnPiece* leftPawn = dynamic_cast<PawnPiece*>(board[diagonalLeftX][currentPosY].getPiecePtr());
+					if (leftPawn)
+					{
+						if (leftPawn->isEnPassant())
 						{
 							possibleMoves.push_back({ currentPosX - 1, currentPosY - 1 });
 						}
@@ -142,6 +186,17 @@ void PawnPiece::move(BoardSpace board[Globals::BOARD_SIZE][Globals::BOARD_SIZE],
 	Piece::move(board, destination);
 	if (!hasMoved)
 	{
+		enPassant = true;
 		hasMoved = true;
 	}
+}
+
+bool PawnPiece::isEnPassant()
+{
+	return enPassant;
+}
+
+void PawnPiece::clearEnPassant()
+{
+	enPassant = false;
 }

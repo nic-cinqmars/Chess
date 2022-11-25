@@ -87,14 +87,6 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 						break;
 					case 'K':
 						piece = new KingPiece(pieceColor, vector<int> {x, y});
-						if (pieceColor == 0)
-						{
-							whiteKing = dynamic_cast<KingPiece*>(piece);
-						}
-						else
-						{
-							blackKing = dynamic_cast<KingPiece*>(piece);
-						}
 						break;
 					default:
 						break;
@@ -175,7 +167,7 @@ void Board::loadGame(int* player)
 	loadBoardFromString(savedBoard);
 }
 
-std::vector<Piece*> Board::getPieces(int color)
+vector<Piece*> Board::getPieces(int color)
 {
 	if (color == 0)
 	{
@@ -187,15 +179,75 @@ std::vector<Piece*> Board::getPieces(int color)
 	}
 }
 
+vector<PawnPiece*> Board::getPawns(int color)
+{
+	if (color == 0)
+	{
+		return whitePawns;
+	}
+	else
+	{
+		return blackPawns;
+	}
+}
+
 void Board::addPiece(Piece* piece)
 {
 	if (piece->getColor() == 0)
 	{
 		whitePieces.push_back(piece);
+		if (piece->getDisplayedChar() == 'P')
+		{
+			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+			whitePawns.push_back(pawn);
+		}
 	}
 	else
 	{
 		blackPieces.push_back(piece);
+		if (piece->getDisplayedChar() == 'P')
+		{
+			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+			blackPawns.push_back(pawn);
+		}
+	}
+}
+
+void Board::removePiece(Piece* piece)
+{
+	if (piece->getColor() == 0)
+	{
+		vector<Piece*>::iterator position = find(whitePieces.begin(), whitePieces.end(), piece);
+		whitePieces.erase(position);
+		if (piece->getDisplayedChar() == 'P')
+		{
+			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+			vector<PawnPiece*>::iterator position = find(whitePawns.begin(), whitePawns.end(), pawn);
+			whitePawns.erase(position);
+		}
+	}
+	else
+	{
+		vector<Piece*>::iterator position = find(blackPieces.begin(), blackPieces.end(), piece);
+		blackPieces.erase(position);
+		if (piece->getDisplayedChar() == 'P')
+		{
+			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+			vector<PawnPiece*>::iterator position = find(blackPawns.begin(), blackPawns.end(), pawn);
+			blackPawns.erase(position);
+		}
+	}
+}
+
+void Board::clearEnPassant(int color)
+{
+	vector<PawnPiece*> pawns = getPawns(color);
+	for (int i = 0; i < pawns.size(); i++)
+	{
+		if (pawns[i]->isEnPassant())
+		{
+			pawns[i]->clearEnPassant();
+		}
 	}
 }
 
@@ -418,17 +470,7 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 	Piece* currentPiece = spaces[newPosition[0]][newPosition[1]].getPiecePtr();
 	if (currentPiece)
 	{
-		cout << "Deleting piece : " << currentPiece->getDisplayedChar();
-		if (currentPiece->getColor() == 0)
-		{
-			vector<Piece*>::iterator position = find(whitePieces.begin(), whitePieces.end(), currentPiece);
-			whitePieces.erase(position);
-		}
-		else
-		{
-			vector<Piece*>::iterator position = find(blackPieces.begin(), blackPieces.end(), currentPiece);
-			blackPieces.erase(position);
-		}
+		removePiece(currentPiece);
 	}
 	string move;
 	if (pieceToMove->getColor() == 0)
@@ -459,20 +501,18 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 		{
 			if (newPosition[1] == BOARD_SIZE - 1)
 			{
-				vector<Piece*>::iterator position = find(whitePieces.begin(), whitePieces.end(), pieceToMove);
-				whitePieces.erase(position);
+				removePiece(pieceToMove);
 				pieceToMove = promotePawn(pieceToMove);
-				whitePieces.push_back(pieceToMove);
+				addPiece(pieceToMove);
 			}
 		}
 		else
 		{
 			if (newPosition[1] == 0)
 			{
-				vector<Piece*>::iterator position = find(blackPieces.begin(), blackPieces.end(), pieceToMove);
-				blackPieces.erase(position);
+				removePiece(pieceToMove);
 				pieceToMove = promotePawn(pieceToMove);
-				blackPieces.push_back(pieceToMove);
+				addPiece(pieceToMove);
 			}
 		}
 	}

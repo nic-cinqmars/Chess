@@ -18,8 +18,9 @@ class Board
 	const int BOARD_DISPLAY_MAGNITUDE = 5; // Odd number only
 	BoardSpace spaces[Globals::BOARD_SIZE][Globals::BOARD_SIZE];
 	std::vector<Piece*> whitePieces;
-	KingPiece* whiteKing;
+	std::vector<PawnPiece*> whitePawns;
 	std::vector<Piece*> blackPieces;
+	std::vector<PawnPiece*> blackPawns;
 	KingPiece* blackKing;
 	bool check;
 	bool checkmate;
@@ -27,7 +28,9 @@ class Board
 	void loadBoardFromString(std::string board[Globals::BOARD_SIZE][Globals::BOARD_SIZE]);
 	void clearBoard();
 	bool checkForCheckmate(int player);
+	void removePiece(Piece* piece);
 	Piece* promotePawn(Piece* pawn);
+	std::vector<PawnPiece*> getPawns(int color);
 
 public:
 	Board();
@@ -45,4 +48,5 @@ public:
 	void loadGame(int* player);
 	bool isCheck();
 	bool isCheckmate();
+	void clearEnPassant(int color);
 };

@@ -70,8 +70,8 @@ int main()
 			}
 			cout << "- Black's turn to move -\n";
 		}
+		board.clearEnPassant(playerTurn);
 		bool moveWorked = false;
-
 		do {
 			//board.checkAllColorPieceMoves(0);
 			cout << "Enter the position of the piece to move: ";
