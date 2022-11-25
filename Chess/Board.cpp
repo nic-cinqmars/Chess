@@ -54,7 +54,6 @@ void Board::clearBoard()
 void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 {
 	clearBoard();
-	vector<KingPiece*> kingPieces;
 
 	for (int y = 0; y < BOARD_SIZE; y++)
 	{
@@ -88,7 +87,14 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 						break;
 					case 'K':
 						piece = new KingPiece(pieceColor, vector<int> {x, y});
-						kingPieces.push_back(dynamic_cast<KingPiece*>(piece));
+						if (pieceColor == 0)
+						{
+							whiteKing = dynamic_cast<KingPiece*>(piece);
+						}
+						else
+						{
+							blackKing = dynamic_cast<KingPiece*>(piece);
+						}
 						break;
 					default:
 						break;
@@ -102,16 +108,6 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 				}
 			}
 		}
-	}
-
-	if (kingPieces.size() != 2)
-	{
-		// problem
-	}
-	else
-	{
-		kingPieces[0]->setGuardedByKing(spaces);
-		kingPieces[1]->setGuardedByKing(spaces);
 	}
 }
 

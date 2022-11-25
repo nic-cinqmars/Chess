@@ -4,7 +4,6 @@ class BoardSpace
 {
 	int color;
 	Piece *piecePtr;
-	int guardedByKing;
 
 public:
 	BoardSpace();
@@ -18,9 +17,4 @@ public:
 	Piece* getPiecePtr();
 
 	void setPiecePtr(Piece* piece);
-
-	bool isGuardedByEnemyKing(int king);
-
-	void setGuardedByKing(int king);
 };
-

@@ -70,7 +70,6 @@ int main()
 			}
 			cout << "- Black's turn to move -\n";
 		}
-
 		bool moveWorked = false;
 
 		do {

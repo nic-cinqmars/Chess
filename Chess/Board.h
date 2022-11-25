@@ -18,7 +18,9 @@ class Board
 	const int BOARD_DISPLAY_MAGNITUDE = 5; // Odd number only
 	BoardSpace spaces[Globals::BOARD_SIZE][Globals::BOARD_SIZE];
 	std::vector<Piece*> whitePieces;
+	KingPiece* whiteKing;
 	std::vector<Piece*> blackPieces;
+	KingPiece* blackKing;
 	bool check;
 	bool checkmate;
 	std::vector<std::string> moveHistory;
