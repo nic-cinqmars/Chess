@@ -15,12 +15,12 @@ Board::Board()
 	string initialBoard[BOARD_SIZE][BOARD_SIZE] =
 	{
 		{"R1", "n1", "B1", "Q1", "K1", "B1", "n1", "R1"},
-		{"P1", "P1", "P1", "P1", "P1", "P1", "P1", "P1"},
+		{"P100", "P100", "P100", "P100", "P100", "P100", "P100", "P100"},
 		{"X", "X", "X", "X", "X", "X", "X", "X"},
 		{"X", "X", "X", "X", "X", "X", "X", "X"},
 		{"X", "X", "X", "X", "X", "X", "X", "X"},
 		{"X", "X", "X", "X", "X", "X", "X", "X"},
-		{"P0", "P0", "P0", "P0", "P0", "P0", "P0", "P0"},
+		{"P000", "P000", "P000", "P000", "P000", "P000", "P000", "P000"},
 		{"R0", "n0", "B0", "Q0", "K0", "B0", "n0", "R0"}
 	};
 
@@ -48,6 +48,8 @@ void Board::clearBoard()
 	}
 	whitePieces.clear();
 	blackPieces.clear();
+	whitePawns.clear();
+	blackPawns.clear();
 	moveHistory.clear();
 }
 
@@ -70,9 +72,6 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 
 					switch (currentPiece[0])
 					{
-					case 'P':
-						piece = new PawnPiece(pieceColor, vector<int> {x, y});
-						break;
 					case 'R':
 						piece = new RookPiece(pieceColor, vector<int> {x, y});
 						break;
@@ -99,6 +98,24 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 					}
 				}
 			}
+			else if (currentPiece.length() == 4)
+			{
+				int pieceColor = currentPiece[1] - '0';
+				int hasMoved = currentPiece[2] - '0';
+				int isEnPassant = currentPiece[3] - '0';
+				PawnPiece* pawn = new PawnPiece(pieceColor, vector<int> {x, y});
+				if (hasMoved == 1)
+				{
+					pawn->setHasMoved(true);
+				}
+				if (isEnPassant == 1)
+				{
+					pawn->setEnPassant(true);
+				}
+
+				addPiece(pawn);
+				spaces[x][y].setPiecePtr(pawn);
+			}
 		}
 	}
 }
@@ -115,6 +132,22 @@ void Board::saveGame(int* player)
 			if (piece)
 			{
 				file << piece->getDisplayedChar() << piece->getColor();
+
+				PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+				if (pawn)
+				{
+					int hasMoved = 0;
+					int isEnPassant = 0;
+					if (pawn->getHasMoved())
+					{
+						hasMoved = 1;
+					}
+					if (pawn->isEnPassant())
+					{
+						isEnPassant = 1;
+					}
+					file << hasMoved << isEnPassant;
+				}
 			}
 			else
 			{
@@ -246,7 +279,7 @@ void Board::clearEnPassant(int color)
 	{
 		if (pawns[i]->isEnPassant())
 		{
-			pawns[i]->clearEnPassant();
+			pawns[i]->setEnPassant(false);
 		}
 	}
 }
@@ -505,6 +538,18 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 				pieceToMove = promotePawn(pieceToMove);
 				addPiece(pieceToMove);
 			}
+			else
+			{
+				PawnPiece* enPassantPawn = dynamic_cast<PawnPiece*>(spaces[newPosition[0]][newPosition[1] - 1].getPiecePtr());
+				if (enPassantPawn)
+				{
+					if (enPassantPawn->isEnPassant())
+					{
+						spaces[newPosition[0]][newPosition[1] - 1].setPiecePtr(nullptr);
+						removePiece(enPassantPawn);
+					}
+				}
+			}
 		}
 		else
 		{
@@ -513,6 +558,18 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 				removePiece(pieceToMove);
 				pieceToMove = promotePawn(pieceToMove);
 				addPiece(pieceToMove);
+			}
+			else
+			{
+				PawnPiece* enPassantPawn = dynamic_cast<PawnPiece*>(spaces[newPosition[0]][newPosition[1] + 1].getPiecePtr());
+				if (enPassantPawn)
+				{
+					if (enPassantPawn->isEnPassant())
+					{
+						spaces[newPosition[0]][newPosition[1] + 1].setPiecePtr(nullptr);
+						removePiece(enPassantPawn);
+					}
+				}
 			}
 		}
 	}

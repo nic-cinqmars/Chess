@@ -11,6 +11,8 @@ public:
 	void move(BoardSpace board[Globals::BOARD_SIZE][Globals::BOARD_SIZE], std::vector<int> destination);
 	std::vector<std::vector<int>> getMoves(BoardSpace board[Globals::BOARD_SIZE][Globals::BOARD_SIZE], bool includeMoveOnKing = false);
 	bool isEnPassant();
-	void clearEnPassant();
+	void setEnPassant(bool value);
+	bool getHasMoved();
+	void setHasMoved(bool value);
 };
 

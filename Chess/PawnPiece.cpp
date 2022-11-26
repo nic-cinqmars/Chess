@@ -183,12 +183,25 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 
 void PawnPiece::move(BoardSpace board[Globals::BOARD_SIZE][Globals::BOARD_SIZE], std::vector<int> destination)
 {
-	Piece::move(board, destination);
 	if (!hasMoved)
 	{
-		enPassant = true;
 		hasMoved = true;
+		if (abs(position[1] - destination[1]) == 2)
+		{
+			enPassant = true;
+		}
 	}
+	Piece::move(board, destination);
+}
+
+bool PawnPiece::getHasMoved()
+{
+	return hasMoved;
+}
+
+void PawnPiece::setHasMoved(bool value)
+{
+	hasMoved = value;
 }
 
 bool PawnPiece::isEnPassant()
@@ -196,7 +209,7 @@ bool PawnPiece::isEnPassant()
 	return enPassant;
 }
 
-void PawnPiece::clearEnPassant()
+void PawnPiece::setEnPassant(bool value)
 {
-	enPassant = false;
+	enPassant = value;
 }

@@ -46,6 +46,7 @@ int main()
 				playerTurn = 0;
 			}
 			board.printBoard(playerTurn);
+			board.clearEnPassant(playerTurn);
 		}
 		vector<string> moveHistory = board.getMoveHistory();
 		if (moveHistory.size() > 0)
@@ -70,7 +71,6 @@ int main()
 			}
 			cout << "- Black's turn to move -\n";
 		}
-		board.clearEnPassant(playerTurn);
 		bool moveWorked = false;
 		do {
 			//board.checkAllColorPieceMoves(0);
