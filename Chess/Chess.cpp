@@ -4,7 +4,7 @@
 #include "Board.h"
 #include <iostream>
 #include <string>
-#include "invalid_move.h";
+#include "invalid_move.h"
 
 using namespace std;
 using namespace Globals;
