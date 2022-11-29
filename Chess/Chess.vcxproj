@@ -131,9 +131,9 @@
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="BoardSpace.cpp" />
     <ClCompile Include="Chess.cpp" />
+    <ClCompile Include="invalid_move.cpp" />
     <ClCompile Include="KingPiece.cpp" />
     <ClCompile Include="KnightPiece.cpp" />
-    <ClCompile Include="Movement.cpp" />
     <ClCompile Include="PawnPiece.cpp" />
     <ClCompile Include="Piece.cpp" />
     <ClCompile Include="QueenPiece.cpp" />
@@ -144,9 +144,9 @@
     <ClInclude Include="Board.h" />
     <ClInclude Include="BoardSpace.h" />
     <ClInclude Include="Globals.h" />
+    <ClInclude Include="invalid_move.h" />
     <ClInclude Include="KingPiece.h" />
     <ClInclude Include="KnightPiece.h" />
-    <ClInclude Include="Movement.h" />
     <ClInclude Include="PawnPiece.h" />
     <ClInclude Include="Piece.h" />
     <ClInclude Include="QueenPiece.h" />

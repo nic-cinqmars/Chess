@@ -354,24 +354,29 @@ void Board::printBoard(int color)
 
 			if (spaces[x / BOARD_DISPLAY_MAGNITUDE][y / BOARD_DISPLAY_MAGNITUDE].getColor() == 1)
 			{
-				SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE | BACKGROUND_BLACK);
+				// Light green
+				SetConsoleTextAttribute(hConsole, 0xCC);
 			}
 			else
 			{
-				SetConsoleTextAttribute(hConsole, FOREGROUND_BLACK | BACKGROUND_WHITE);
+				// Gray
+				SetConsoleTextAttribute(hConsole, 0xFF);
 			}
 			if (!emptyRow)
 			{
 				bool placeEmpty = (x - BOARD_DISPLAY_MAGNITUDE / 2) % BOARD_DISPLAY_MAGNITUDE != 0;
 				if (!placeEmpty)
 				{
-					if (pieceColor == 1)
+					if (piece != ' ')
 					{
-						SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE | BACKGROUND_BLACK);
-					}
-					else if (pieceColor == 0)
-					{
-						SetConsoleTextAttribute(hConsole, FOREGROUND_BLACK | BACKGROUND_WHITE);
+						if (pieceColor == 1)
+						{
+							SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE | BACKGROUND_BLACK);
+						}
+						else if (pieceColor == 0)
+						{
+							SetConsoleTextAttribute(hConsole, FOREGROUND_BLACK | BACKGROUND_WHITE);
+						}
 					}
 					cout << " " << piece << " ";
 				}
@@ -451,6 +456,10 @@ bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 					{
 						break;
 					}
+				}
+				else
+				{
+					//throw invalid_move("This piece cannot make this move!");
 				}
 			}
 		}

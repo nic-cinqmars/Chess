@@ -11,7 +11,8 @@
 #include "BishopPiece.h"
 #include "QueenPiece.h"
 #include "KingPiece.h"
-#include "Globals.h"
+#include "Globals.h"|
+#include "invalid_move.h"
 
 class Board
 {

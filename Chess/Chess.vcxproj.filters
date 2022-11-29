@@ -51,8 +51,8 @@
     <ClCompile Include="BishopPiece.cpp">
       <Filter>Source Files\Pieces</Filter>
     </ClCompile>
-    <ClCompile Include="Movement.cpp">
-      <Filter>Source Files\Pieces</Filter>
+    <ClCompile Include="invalid_move.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,10 +83,10 @@
     <ClInclude Include="BishopPiece.h">
       <Filter>Header Files\Pieces</Filter>
     </ClInclude>
-    <ClInclude Include="Movement.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
     <ClInclude Include="Globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="invalid_move.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

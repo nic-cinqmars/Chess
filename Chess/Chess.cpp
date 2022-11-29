@@ -4,6 +4,7 @@
 #include "Board.h"
 #include <iostream>
 #include <string>
+#include "invalid_move.h";
 
 using namespace std;
 using namespace Globals;
@@ -91,7 +92,14 @@ int main()
 				break;
 			}
 
-			moveWorked = board.attemptPieceMove(pieceToMovePosition, playerTurn, positionToGo);
+			try
+			{
+				moveWorked = board.attemptPieceMove(pieceToMovePosition, playerTurn, positionToGo);
+			}
+			catch (invalid_move e)
+			{
+				cout << e.what();
+			}
 			if (!moveWorked)
 			{
 				cout << "Invalid move!\n";
