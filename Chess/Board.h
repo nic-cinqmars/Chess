@@ -16,7 +16,7 @@
 
 class Board
 {
-	const int BOARD_DISPLAY_MAGNITUDE = 3; // Odd number only
+	const int BOARD_DISPLAY_MAGNITUDE = 5; // Odd number only
 	BoardSpace spaces[Globals::BOARD_SIZE][Globals::BOARD_SIZE];
 	std::vector<Piece*> whitePieces;
 	std::vector<PawnPiece*> whitePawns;

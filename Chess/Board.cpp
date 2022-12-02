@@ -355,12 +355,12 @@ void Board::printBoard(int color)
 			if (spaces[x / BOARD_DISPLAY_MAGNITUDE][y / BOARD_DISPLAY_MAGNITUDE].getColor() == 1)
 			{
 				// Light green
-				SetConsoleTextAttribute(hConsole, 0xCC);
+				SetConsoleTextAttribute(hConsole, 0xCF);
 			}
 			else
 			{
 				// Gray
-				SetConsoleTextAttribute(hConsole, 0xFF);
+				SetConsoleTextAttribute(hConsole, 0xFC);
 			}
 			if (!emptyRow)
 			{
