@@ -7,6 +7,7 @@ KingPiece::KingPiece(int color, std::vector<int> position)
 {
 	this->color = color;
 	this->position = position;
+	hasMoved = false;
 	displayedChar = 'K';
 }
 
@@ -57,5 +58,75 @@ vector<vector<int>> KingPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 		}
 	}
 
+	if (!hasMoved)
+	{
+		RookPiece* leftRook = dynamic_cast<RookPiece*>(board[0][currentPosY].getPiecePtr());
+		if (leftRook)
+		{
+			if (!leftRook->getHasMoved())
+			{
+				bool noPieces = true;
+
+				for (int i = currentPosX - 1; i > 0; i--)
+				{
+					Piece* piece = board[i][currentPosY].getPiecePtr();
+					if (piece)
+					{
+						noPieces = false;
+						break;
+					}
+				}
+
+				if (noPieces)
+				{
+					possibleMoves.push_back(vector<int> { currentPosX - 2, currentPosY });
+				}
+			}
+		}
+
+		RookPiece* rightRook = dynamic_cast<RookPiece*>(board[BOARD_SIZE - 1][currentPosY].getPiecePtr());
+		if (rightRook)
+		{
+			if (!rightRook->getHasMoved())
+			{
+				bool noPieces = true;
+
+				for (int i = currentPosX + 1; i < BOARD_SIZE - 1; i++)
+				{
+					Piece* piece = board[i][currentPosY].getPiecePtr();
+					if (piece)
+					{
+						noPieces = false;
+						break;
+					}
+				}
+
+				if (noPieces)
+				{
+					possibleMoves.push_back(vector<int> { currentPosX + 2, currentPosY });
+				}
+			}
+		}
+	}
+
 	return possibleMoves;
+}
+
+void KingPiece::move(BoardSpace board[Globals::BOARD_SIZE][Globals::BOARD_SIZE], std::vector<int> destination)
+{
+	if (!hasMoved)
+	{
+		hasMoved = true;
+	}
+	Piece::move(board, destination);
+}
+
+bool KingPiece::getHasMoved()
+{
+	return hasMoved;
+}
+
+void KingPiece::setHasMoved(bool value)
+{
+	hasMoved = value;
 }

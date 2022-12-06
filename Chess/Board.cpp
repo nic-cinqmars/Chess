@@ -14,14 +14,14 @@ Board::Board()
 
 	string initialBoard[BOARD_SIZE][BOARD_SIZE] =
 	{
-		{"R1", "n1", "B1", "Q1", "K1", "B1", "n1", "R1"},
+		{"R10", "n1", "B1", "Q1", "K10", "B1", "n1", "R10"},
 		{"P100", "P100", "P100", "P100", "P100", "P100", "P100", "P100"},
 		{"X", "X", "X", "X", "X", "X", "X", "X"},
 		{"X", "X", "X", "X", "X", "X", "X", "X"},
 		{"X", "X", "X", "X", "X", "X", "X", "X"},
 		{"X", "X", "X", "X", "X", "X", "X", "X"},
 		{"P000", "P000", "P000", "P000", "P000", "P000", "P000", "P000"},
-		{"R0", "n0", "B0", "Q0", "K0", "B0", "n0", "R0"}
+		{"R00", "n0", "B0", "Q0", "K00", "B0", "n0", "R00"}
 	};
 
 	for (int y = 0; y < BOARD_SIZE; y++)
@@ -116,6 +116,38 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 				addPiece(pawn);
 				spaces[x][y].setPiecePtr(pawn);
 			}
+			else if (currentPiece.length() == 3)
+			{
+				char pieceChar = currentPiece[0];
+				int pieceColor = currentPiece[1] - '0';
+				int hasMoved = currentPiece[2] - '0';
+				Piece* piece = nullptr;
+
+				if (pieceChar == 'K')
+				{
+					KingPiece* king = new KingPiece(pieceColor, vector<int> {x, y});
+					if (hasMoved == 1)
+					{
+						king->setHasMoved(true);
+					}
+					piece = king;
+				}
+				else if (pieceChar == 'R')
+				{
+					RookPiece* rook = new RookPiece(pieceColor, vector<int> {x, y});
+					if (hasMoved == 1)
+					{
+						rook->setHasMoved(true);
+					}
+					piece = rook;
+				}
+
+				if (piece)
+				{
+					addPiece(piece);
+					spaces[x][y].setPiecePtr(piece);
+				}
+			}
 		}
 	}
 }
@@ -147,6 +179,32 @@ void Board::saveGame(int* player)
 						isEnPassant = 1;
 					}
 					file << hasMoved << isEnPassant;
+				}
+				else
+				{
+					KingPiece* king = dynamic_cast<KingPiece*>(piece);
+					if (king)
+					{
+						int hasMoved = 0;
+						if (king->getHasMoved())
+						{
+							hasMoved = 1;
+						}
+						file << hasMoved;
+					}
+					else
+					{
+						RookPiece* rook = dynamic_cast<RookPiece*>(piece);
+						if (rook)
+						{
+							int hasMoved = 0;
+							if (rook->getHasMoved())
+							{
+								hasMoved = 1;
+							}
+							file << hasMoved;
+						}
+					}
 				}
 			}
 			else
@@ -446,6 +504,40 @@ bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 				int moveY = pieceMoves[i][1];
 				if (destination[0] == moveX && destination[1] == moveY)
 				{
+					// Check for castling rules
+					KingPiece* kingPiece = dynamic_cast<KingPiece*>(pieceToMove);
+					if (kingPiece)
+					{
+						// Check for castle
+						if (!kingPiece->getHasMoved())
+						{
+							int castleX = destination[0] - pieceToMovePosition[0];
+							// Castling
+							if (abs(castleX) == 2)
+							{
+								if (check)
+								{
+									break;
+								}
+								else
+								{
+									if (castleX > 0)
+									{
+										castleX--;
+									}
+									else if (castleX < 0)
+									{
+										castleX++;
+									}
+									if (willPutInCheck(kingPiece, vector<int>{pieceToMovePosition[0] + castleX, pieceToMovePosition[1]}))
+									{
+										break;
+									}
+								}
+							}
+						}
+					}
+
 					if (!willPutInCheck(pieceToMove, destination))
 					{
 						check = false;
@@ -579,6 +671,27 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 						removePiece(enPassantPawn);
 					}
 				}
+			}
+		}
+	}
+	else if (pieceToMove->getDisplayedChar() == 'K')
+	{
+		// Check if move was castle move
+		int castleX = newPosition[0] - pieceToMove->getPosition()[0];
+		// Castling
+		if (abs(castleX) == 2)
+		{
+			if (castleX > 0)
+			{
+				Piece* rightRook = spaces[BOARD_SIZE - 1][pieceToMove->getPosition()[1]].getPiecePtr();
+				vector<int> rookNewPosition = { rightRook->getPosition()[0] - 2, rightRook->getPosition()[1] };
+				rightRook->move(spaces, rookNewPosition);
+			}
+			else if (castleX < 0)
+			{
+				Piece* leftRook = spaces[0][pieceToMove->getPosition()[1]].getPiecePtr();
+				vector<int> rookNewPosition = { leftRook->getPosition()[0] + 3, leftRook->getPosition()[1] };
+				leftRook->move(spaces, rookNewPosition);
 			}
 		}
 	}

@@ -8,6 +8,7 @@ RookPiece::RookPiece(int color, vector<int> position)
 {
 	this->color = color;
 	this->position = position;
+	hasMoved = false;
 	displayedChar = 'R';
 }
 
@@ -57,4 +58,23 @@ vector<vector<int>> RookPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 		}
 	}
 	return possibleMoves;
+}
+
+void RookPiece::move(BoardSpace board[Globals::BOARD_SIZE][Globals::BOARD_SIZE], std::vector<int> destination)
+{
+	if (!hasMoved)
+	{
+		hasMoved = true;
+	}
+	Piece::move(board, destination);
+}
+
+bool RookPiece::getHasMoved()
+{
+	return hasMoved;
+}
+
+void RookPiece::setHasMoved(bool value)
+{
+	hasMoved = value;
 }
