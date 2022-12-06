@@ -11,6 +11,9 @@ Board::Board()
 {
 	checkmate = false;
 	check = false;
+	startTime = chrono::system_clock::now();
+	whiteTime = chrono::duration<double>(0);
+	blackTime = chrono::duration<double>(0);
 
 	string initialBoard[BOARD_SIZE][BOARD_SIZE] =
 	{
@@ -218,7 +221,9 @@ void Board::saveGame(int* player)
 		}
 		file << "\n";
 	}
-	file << *player;
+	file << *player << "\n";
+	file << whiteTime.count() << "\n";
+	file << blackTime.count();
 	file.close();
 }
 
@@ -246,12 +251,20 @@ void Board::loadGame(int* player)
 					}
 				}
 				savedBoard[indexY][indexX] = line;
-				indexY++;
 			}
 			else if (indexY == BOARD_SIZE)
 			{
 				*player = line[0] - '0';
 			}
+			else if (indexY == BOARD_SIZE + 1)
+			{
+				whiteTime = chrono::duration<double>(stod(line));
+			}
+			else if (indexY == BOARD_SIZE + 2)
+			{
+				blackTime = chrono::duration<double>(stod(line));
+			}
+			indexY++;
 		}
 	}
 
@@ -779,4 +792,30 @@ bool Board::isCheck()
 bool Board::isCheckmate()
 {
 	return checkmate;
+}
+
+void Board::setTime(int color)
+{
+	chrono::duration<double> time = chrono::system_clock::now() - startTime;
+	if (color == 0)
+	{
+		whiteTime += time;
+	}
+	else
+	{
+		blackTime += time;
+	}
+	startTime = chrono::system_clock::now();
+}
+
+double Board::getTime(int color)
+{
+	if (color == 0)
+	{
+		return whiteTime.count();
+	}
+	else
+	{
+		return blackTime.count();
+	}
 }

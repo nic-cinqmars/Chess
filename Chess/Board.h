@@ -13,6 +13,7 @@
 #include "KingPiece.h"
 #include "Globals.h"
 #include "invalid_move.h"
+#include <chrono>
 
 class Board
 {
@@ -32,6 +33,9 @@ class Board
 	void removePiece(Piece* piece);
 	Piece* promotePawn(Piece* pawn);
 	std::vector<PawnPiece*> getPawns(int color);
+	std::chrono::system_clock::time_point startTime;
+	std::chrono::duration<double> whiteTime;
+	std::chrono::duration<double> blackTime;
 
 public:
 	Board();
@@ -50,4 +54,6 @@ public:
 	bool isCheck();
 	bool isCheckmate();
 	void clearEnPassant(int color);
+	void setTime(int color);
+	double getTime(int color);
 };

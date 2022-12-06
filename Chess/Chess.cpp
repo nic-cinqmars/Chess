@@ -38,6 +38,7 @@ int main()
 		}
 		else
 		{
+			int otherPlayer = playerTurn;
 			if (playerTurn == 0)
 			{
 				playerTurn++;
@@ -100,14 +101,22 @@ int main()
 			{
 				cout << e.what();
 			}
+
 			if (!moveWorked)
 			{
 				cout << "Invalid move!\n";
 			}
+			else
+			{
+				board.setTime(playerTurn);
+			}
 		} while (!moveWorked);
 	} while (!board.isCheckmate());
 
-	cout << "Checkmate!";
+	cout << "Checkmate!\n";
+	cout << "Game took " << board.getTime(0) + board.getTime(1) << " seconds.\n";
+	cout << "White took " << board.getTime(0) << " seconds.\n";
+	cout << "Black took " << board.getTime(1) << " seconds.";
 
 	return 0;
 }
