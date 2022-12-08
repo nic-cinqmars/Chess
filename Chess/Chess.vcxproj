@@ -134,6 +134,7 @@
     <ClCompile Include="invalid_move.cpp" />
     <ClCompile Include="KingPiece.cpp" />
     <ClCompile Include="KnightPiece.cpp" />
+    <ClCompile Include="load_game.cpp" />
     <ClCompile Include="PawnPiece.cpp" />
     <ClCompile Include="Piece.cpp" />
     <ClCompile Include="QueenPiece.cpp" />
@@ -147,6 +148,7 @@
     <ClInclude Include="invalid_move.h" />
     <ClInclude Include="KingPiece.h" />
     <ClInclude Include="KnightPiece.h" />
+    <ClInclude Include="load_game.h" />
     <ClInclude Include="PawnPiece.h" />
     <ClInclude Include="Piece.h" />
     <ClInclude Include="QueenPiece.h" />

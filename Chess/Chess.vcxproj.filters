@@ -19,6 +19,12 @@
     <Filter Include="Header Files\Pieces">
       <UniqueIdentifier>{e06b5144-3dbe-46dd-a02f-e6bd753f11bc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Exceptions">
+      <UniqueIdentifier>{1ddb7373-40d4-4335-9fd1-9d47848fd44e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Exceptions">
+      <UniqueIdentifier>{0be5ff9f-9bdb-4076-82dc-2f1bf054f1c1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Board.cpp">
@@ -52,7 +58,10 @@
       <Filter>Source Files\Pieces</Filter>
     </ClCompile>
     <ClCompile Include="invalid_move.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="load_game.cpp">
+      <Filter>Source Files\Exceptions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -87,7 +96,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="invalid_move.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="load_game.h">
+      <Filter>Header Files\Exceptions</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,15 +1,20 @@
 #define NOMINMAX
 #define _WIN32_WINNT 0x0500
 
-#include "Board.h"
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <chrono>
+#include "Board.h"
 #include "invalid_move.h"
+#include "load_game.h"
 
 using namespace std;
 using namespace Globals;
 
 void IgnoreLine();
+
+string GetTimeFromDuration(chrono::duration<double> time);
 
 vector<int> GetPosition();
 
@@ -25,8 +30,10 @@ int main()
 
 	HWND consoleWindow = GetConsoleWindow();
 	SetWindowLong(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
-
+	
+	chrono::duration<double> lastTurnTime;
 	bool newGameLoaded = true;
+
 	do
 	{
 		if (newGameLoaded)
@@ -38,17 +45,22 @@ int main()
 		}
 		else
 		{
-			int otherPlayer = playerTurn;
+			string oldPlayerString;
+			int oldPlayer = playerTurn;
 			if (playerTurn == 0)
 			{
+				oldPlayerString = "White";
 				playerTurn++;
 			}
 			else
 			{
+				oldPlayerString = "Black";
 				playerTurn = 0;
 			}
 			board.printBoard(playerTurn);
 			board.clearEnPassant(playerTurn);
+			cout << oldPlayerString << " took " << GetTimeFromDuration(lastTurnTime) << " to make this move.\n";
+			cout << oldPlayerString << "'s total reflection time is now " << GetTimeFromDuration(board.getTime(oldPlayer)) << ".\n\n";
 		}
 		vector<string> moveHistory = board.getMoveHistory();
 		if (moveHistory.size() > 0)
@@ -76,49 +88,132 @@ int main()
 		bool moveWorked = false;
 		do {
 			//board.checkAllColorPieceMoves(0);
-			cout << "Enter the position of the piece to move: ";
-			vector<int> pieceToMovePosition = GetPosition();
-			if (pieceToMovePosition[0] == -1 && pieceToMovePosition[1] == -1)
+			vector<int> pieceToMovePosition;
+			vector<int> positionToGo;
+			try
 			{
-				newGameLoaded = true;
-				break;
-			}
+				cout << "Enter the position of the piece to move: ";
+				pieceToMovePosition = GetPosition();
 
-			cout << "Enter the position that the piece will move to: ";
-			vector<int> positionToGo = GetPosition();
-			// Happens when new game is loaded
-			if (pieceToMovePosition[0] == -1 && pieceToMovePosition[1] == -1)
+				cout << "Enter the position that the piece will move to: ";
+				positionToGo = GetPosition();
+			}
+			catch (load_game* e)
 			{
+				cout << e->what();
+				board.loadGame(&playerTurn);
 				newGameLoaded = true;
 				break;
 			}
 
 			try
 			{
-				moveWorked = board.attemptPieceMove(pieceToMovePosition, playerTurn, positionToGo);
+				board.attemptPieceMove(pieceToMovePosition, playerTurn, positionToGo);
+				moveWorked = true;
 			}
-			catch (invalid_move e)
+			catch (invalid_move* e)
 			{
-				cout << e.what();
+				cout << "Invalid move: ";
+				cout << e->what();
+				cout << " Try again...\n";
 			}
 
-			if (!moveWorked)
+			if (moveWorked)
 			{
-				cout << "Invalid move!\n";
-			}
-			else
-			{
-				board.setTime(playerTurn);
+				lastTurnTime = board.setTime(playerTurn);
 			}
 		} while (!moveWorked);
 	} while (!board.isCheckmate());
 
+	board.printBoard(playerTurn);
+
+	chrono::duration<double> whiteTime = board.getTime(0);
+	chrono::duration<double> blackTime = board.getTime(1);
+	chrono::duration<double> totalTime = whiteTime + blackTime;
 	cout << "Checkmate!\n";
-	cout << "Game took " << board.getTime(0) + board.getTime(1) << " seconds.\n";
-	cout << "White took " << board.getTime(0) << " seconds.\n";
-	cout << "Black took " << board.getTime(1) << " seconds.";
+	cout << "Game lasted " << GetTimeFromDuration(totalTime) << ".\n";
+	cout << "White took " << GetTimeFromDuration(whiteTime) << " to think.\n";
+	cout << "Black took " << GetTimeFromDuration(blackTime) << " to think.\n\n";
+
+	cout << "Move history:";
+	vector<string> moveHistory = board.getMoveHistory();
+	for (int i = 0; i < moveHistory.size(); i++)
+	{
+		cout << "\n\t" << moveHistory[i];
+	}
 
 	return 0;
+}
+
+string GetTimeFromDuration(chrono::duration<double> time)
+{
+	string timeString = "";
+	auto seconds = chrono::duration_cast<chrono::seconds>(time);
+	auto hours = chrono::duration_cast<chrono::hours>(seconds);
+	seconds -= hours;
+	auto minutes = chrono::duration_cast<chrono::minutes>(seconds);
+	seconds -= minutes;
+
+	int count = 0;
+	if (hours >= 1h)
+	{
+		count++;
+	}
+	if (minutes >= 1min)
+	{
+		count++;
+	}
+	if (seconds >= 1s)
+	{
+		count++;
+	}
+
+	if (hours >= 1h)
+	{
+		timeString += to_string(hours.count());
+		timeString += " hour";
+		if (hours >= 2h)
+		{
+			timeString += "s";
+		}
+		if (count > 1)
+		{
+			timeString += ", ";
+		}
+		count--;
+	}
+
+	if (minutes >= 1min)
+	{
+		timeString += to_string(minutes.count());
+		timeString += " minute";
+		if (minutes >= 2min)
+		{
+			timeString += "s";
+		}
+		if (count > 1)
+		{
+			timeString += ", ";
+		}
+	}
+
+	if (seconds >= 1s)
+	{
+		timeString += to_string(seconds.count());
+		timeString += " second";
+		if (seconds >= 2s)
+		{
+			timeString += "s";
+		}
+	}
+
+	size_t lastComma = timeString.find_last_of(',');
+	if (lastComma != string::npos)
+	{
+		timeString.replace(lastComma, 2, " and ");
+	}
+
+	return timeString;
 }
 
 //Clear extra input from cin
@@ -145,8 +240,7 @@ vector<int> GetPosition()
 				}
 				if (toupper(input[0]) == 'L')
 				{
-					board.loadGame(&playerTurn);
-					return vector<int> { -1, -1 };
+					throw new load_game();
 				}
 			}
 			else

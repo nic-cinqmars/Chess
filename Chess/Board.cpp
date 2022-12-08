@@ -9,12 +9,10 @@ using namespace Globals;
 
 Board::Board()
 {
-	checkmate = false;
-	check = false;
-	startTime = chrono::system_clock::now();
-	whiteTime = chrono::duration<double>(0);
-	blackTime = chrono::duration<double>(0);
-
+	// Board is set up this way initially
+	// Each piece is represented by its character followed by its color (0 or 1)
+	// Certain pieces like pawns, kings and rooks need additional data stored such as if they have moved or not yet (3rd number, 0 or 1)
+	// Pawns need even more data stored such as if they can be en passant (4th number, 0 or 1)
 	string initialBoard[BOARD_SIZE][BOARD_SIZE] =
 	{
 		{"R10", "n1", "B1", "Q1", "K10", "B1", "n1", "R10"},
@@ -27,147 +25,254 @@ Board::Board()
 		{"R00", "n0", "B0", "Q0", "K00", "B0", "n0", "R00"}
 	};
 
-	for (int y = 0; y < BOARD_SIZE; y++)
-	{
-		for (int x = 0; x < BOARD_SIZE; x++)
-		{
-			int spaceColor = (x + y) % 2;
-			spaces[x][y] = BoardSpace(spaceColor);
-		}
-	}
+	// Create empty board
+	createNewBoard();
 
+	// Loads the board from string above
 	loadBoardFromString(initialBoard);
 }
 
-void Board::clearBoard()
+void Board::loadGame(int* player)
 {
+	// First create empty board
+	createNewBoard();
+
+	// Open game.txt file
+	ifstream file("game.txt");
+
+	// Initialize 2D string array
+	string savedBoard[BOARD_SIZE][BOARD_SIZE];
+
+	if (file.is_open())
+	{
+		string line;
+		int indexY = 0;
+		while (getline(file, line))
+		{
+			// Add piece to savedBoard
+			if (indexY < BOARD_SIZE)
+			{
+				int indexX = 0;
+				while (line.find(" ") != string::npos)
+				{
+					if (indexX < BOARD_SIZE)
+					{
+						savedBoard[indexY][indexX] = line.substr(0, line.find(" "));
+						line.erase(0, line.find(" ") + 1);
+						indexX++;
+					}
+				}
+				savedBoard[indexY][indexX] = line;
+			}
+			// Load other game values
+			else if (indexY == BOARD_SIZE)
+			{
+				*player = line[0] - '0';
+			}
+			else if (indexY == BOARD_SIZE + 1)
+			{
+				whiteTime = chrono::duration<double>(stod(line));
+			}
+			else if (indexY == BOARD_SIZE + 2)
+			{
+				blackTime = chrono::duration<double>(stod(line));
+			}
+			else if (indexY > BOARD_SIZE + 2)
+			{
+				moveHistory.push_back(line);
+			}
+			indexY++;
+		}
+	}
+	// If we have a problem when opening the game.txt file, load default board
+	else
+	{
+		string initialBoard[BOARD_SIZE][BOARD_SIZE] =
+		{
+			{"R10", "n1", "B1", "Q1", "K10", "B1", "n1", "R10"},
+			{"P100", "P100", "P100", "P100", "P100", "P100", "P100", "P100"},
+			{"X", "X", "X", "X", "X", "X", "X", "X"},
+			{"X", "X", "X", "X", "X", "X", "X", "X"},
+			{"X", "X", "X", "X", "X", "X", "X", "X"},
+			{"X", "X", "X", "X", "X", "X", "X", "X"},
+			{"P000", "P000", "P000", "P000", "P000", "P000", "P000", "P000"},
+			{"R00", "n0", "B0", "Q0", "K00", "B0", "n0", "R00"}
+		};
+
+		for (int y = 0; y < BOARD_SIZE; y++)
+		{
+			for (int x = 0; x < BOARD_SIZE; x++)
+			{
+				savedBoard[y][x] = initialBoard[y][x];
+			}
+		}
+		*player = 0;
+	}
+
+	loadBoardFromString(savedBoard);
+}
+
+void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
+{
+	// Loops through the 2D string array
 	for (int y = 0; y < BOARD_SIZE; y++)
 	{
 		for (int x = 0; x < BOARD_SIZE; x++)
 		{
-			int spaceColor = (x + y) % 2;
-			spaces[x][y] = BoardSpace(spaceColor);
+			// Inverse the y position to go from bottom to top
+			int currentY = (BOARD_SIZE - 1) - y;
+
+			string currentPiece = board[currentY][x];
+
+			// If length > 1, we have a piece and a color
+			if (currentPiece.length() > 1)
+			{
+				// Piece char is the first char in string
+				char pieceChar = currentPiece[0];
+				// Piece color is the second char in string
+				int pieceColor = currentPiece[1] - '0';
+
+				// Check if pieceColor is valid
+				if (pieceColor == 0 || pieceColor == 1)
+				{
+					// If length == 2, possible pieces are Knight, Bishop or Queen
+					if (currentPiece.length() == 2)
+					{
+						Piece* piece = nullptr;
+
+						// Create piece depending on char
+						switch (pieceChar)
+						{
+						case 'n':
+							piece = new KnightPiece(pieceColor, vector<int> {x, y});
+							break;
+						case 'B':
+							piece = new BishopPiece(pieceColor, vector<int> {x, y});
+							break;
+						case 'Q':
+							piece = new QueenPiece(pieceColor, vector<int> {x, y});
+							break;
+						default:
+							break;
+						}
+
+						if (piece)
+						{
+							// Add piece to vector
+							addPiece(piece);
+
+							// Add piece to corresponding space
+							spaces[x][y].setPiecePtr(piece);
+						}
+					}
+					// If length == 3, possible pieces are Rook and King
+					else if (currentPiece.length() == 3)
+					{
+						// Has moved value is third char in string
+						int hasMoved = currentPiece[2] - '0';
+						Piece* piece = nullptr;
+
+						if (pieceChar == 'K')
+						{
+							KingPiece* king = new KingPiece(pieceColor, vector<int> {x, y});
+							if (hasMoved == 1)
+							{
+								king->setHasMoved(true);
+							}
+							piece = king;
+						}
+						else if (pieceChar == 'R')
+						{
+							RookPiece* rook = new RookPiece(pieceColor, vector<int> {x, y});
+							if (hasMoved == 1)
+							{
+								rook->setHasMoved(true);
+							}
+							piece = rook;
+						}
+
+						if (piece)
+						{
+							addPiece(piece);
+							spaces[x][y].setPiecePtr(piece);
+						}
+					}
+					// If length == 4, we know the piece is a pawn
+					else if (currentPiece.length() == 4)
+					{
+						// Has moved value is third char in string
+						int hasMoved = currentPiece[2] - '0';
+						// Is en passant value is fourth char in string
+						int isEnPassant = currentPiece[3] - '0';
+
+						PawnPiece* pawn = new PawnPiece(pieceColor, vector<int> {x, y});
+						if (hasMoved == 1)
+						{
+							pawn->setHasMoved(true);
+						}
+						if (isEnPassant == 1)
+						{
+							pawn->setEnPassant(true);
+						}
+
+						addPiece(pawn);
+						spaces[x][y].setPiecePtr(pawn);
+					}
+				}
+			}
 		}
 	}
+}
+
+void Board::createNewBoard()
+{
+	// Clear every stored vector
 	whitePieces.clear();
 	blackPieces.clear();
 	whitePawns.clear();
 	blackPawns.clear();
 	moveHistory.clear();
+
+	// Initialize variables
+	startTime = chrono::system_clock::now();
+	whiteTime = chrono::duration<double>(0);
+	blackTime = chrono::duration<double>(0);
+
+	initializeBoardSpaces();
 }
 
-void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
+void Board::initializeBoardSpaces()
 {
-	clearBoard();
-
+	// Initialize board spaces
 	for (int y = 0; y < BOARD_SIZE; y++)
 	{
 		for (int x = 0; x < BOARD_SIZE; x++)
 		{
-			int currentY = (BOARD_SIZE - 1) - y;
-			string currentPiece = board[currentY][x];
-			if (currentPiece.length() == 2)
-			{
-				int pieceColor = currentPiece[1] - '0';
-				if (pieceColor == 0 || pieceColor == 1)
-				{
-					Piece* piece = nullptr;
-
-					switch (currentPiece[0])
-					{
-					case 'R':
-						piece = new RookPiece(pieceColor, vector<int> {x, y});
-						break;
-					case 'n':
-						piece = new KnightPiece(pieceColor, vector<int> {x, y});
-						break;
-					case 'B':
-						piece = new BishopPiece(pieceColor, vector<int> {x, y});
-						break;
-					case 'Q':
-						piece = new QueenPiece(pieceColor, vector<int> {x, y});
-						break;
-					case 'K':
-						piece = new KingPiece(pieceColor, vector<int> {x, y});
-						break;
-					default:
-						break;
-					}
-
-					if (piece)
-					{
-						addPiece(piece);
-						spaces[x][y].setPiecePtr(piece);
-					}
-				}
-			}
-			else if (currentPiece.length() == 4)
-			{
-				int pieceColor = currentPiece[1] - '0';
-				int hasMoved = currentPiece[2] - '0';
-				int isEnPassant = currentPiece[3] - '0';
-				PawnPiece* pawn = new PawnPiece(pieceColor, vector<int> {x, y});
-				if (hasMoved == 1)
-				{
-					pawn->setHasMoved(true);
-				}
-				if (isEnPassant == 1)
-				{
-					pawn->setEnPassant(true);
-				}
-
-				addPiece(pawn);
-				spaces[x][y].setPiecePtr(pawn);
-			}
-			else if (currentPiece.length() == 3)
-			{
-				char pieceChar = currentPiece[0];
-				int pieceColor = currentPiece[1] - '0';
-				int hasMoved = currentPiece[2] - '0';
-				Piece* piece = nullptr;
-
-				if (pieceChar == 'K')
-				{
-					KingPiece* king = new KingPiece(pieceColor, vector<int> {x, y});
-					if (hasMoved == 1)
-					{
-						king->setHasMoved(true);
-					}
-					piece = king;
-				}
-				else if (pieceChar == 'R')
-				{
-					RookPiece* rook = new RookPiece(pieceColor, vector<int> {x, y});
-					if (hasMoved == 1)
-					{
-						rook->setHasMoved(true);
-					}
-					piece = rook;
-				}
-
-				if (piece)
-				{
-					addPiece(piece);
-					spaces[x][y].setPiecePtr(piece);
-				}
-			}
+			int spaceColor = (x + y) % 2;
+			spaces[x][y] = BoardSpace(spaceColor);
 		}
 	}
 }
 
 void Board::saveGame(int* player)
 {
+	// Open game.txt file
 	ofstream file;
 	file.open("game.txt");
+
+	// Loop through spaces on the board
 	for (int y = 0; y < BOARD_SIZE; y++)
 	{
 		for (int x = 0; x < BOARD_SIZE; x++)
 		{
 			Piece* piece = spaces[x][(BOARD_SIZE - 1) - y].getPiecePtr();
+			// If current space has piece
 			if (piece)
 			{
+				// Add piece char and color to file
 				file << piece->getDisplayedChar() << piece->getColor();
 
+				// Check if piece is a pawn and add more data to file
 				PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
 				if (pawn)
 				{
@@ -185,6 +290,7 @@ void Board::saveGame(int* player)
 				}
 				else
 				{
+					// Check if piece is a king and add more data to file
 					KingPiece* king = dynamic_cast<KingPiece*>(piece);
 					if (king)
 					{
@@ -197,6 +303,7 @@ void Board::saveGame(int* player)
 					}
 					else
 					{
+						// Check if piece is a rook and add more data to file
 						RookPiece* rook = dynamic_cast<RookPiece*>(piece);
 						if (rook)
 						{
@@ -212,63 +319,83 @@ void Board::saveGame(int* player)
 			}
 			else
 			{
+				// Put an X in file when the space has no piece
 				file << "X";
 			}
+			// Check if we aren't on the last space in a row
 			if (x != (BOARD_SIZE - 1))
 			{
+				// Add a space in file after each space on the board
 				file << " ";
 			}
 		}
+		// Add a new line to file after  each row
 		file << "\n";
 	}
+	// Add which player's turn we are at, aswell as the reflection time of each player in the file
 	file << *player << "\n";
 	file << whiteTime.count() << "\n";
 	file << blackTime.count();
+
+	// Add each move in move history
+	for (int i = 0; i < moveHistory.size(); i++)
+	{
+		file << "\n" << moveHistory[i];
+	}
+	// Close file
 	file.close();
 }
 
-void Board::loadGame(int* player)
+void Board::addPiece(Piece* piece)
 {
-	ifstream file("game.txt");
-	string savedBoard[BOARD_SIZE][BOARD_SIZE];
-
-	if (file.is_open())
+	if (piece->getColor() == 0)
 	{
-		string line;
-		int indexY = 0;
-		while (getline(file, line))
+		whitePieces.push_back(piece);
+		// If the piece is a pawn, also add it to corresponding pawn vector
+		if (piece->getDisplayedChar() == 'P')
 		{
-			if (indexY < BOARD_SIZE)
-			{
-				int indexX = 0;
-				while (line.find(" ") != string::npos)
-				{
-					if (indexX < BOARD_SIZE)
-					{
-						savedBoard[indexY][indexX] = line.substr(0, line.find(" "));
-						line.erase(0, line.find(" ") + 1);
-						indexX++;
-					}
-				}
-				savedBoard[indexY][indexX] = line;
-			}
-			else if (indexY == BOARD_SIZE)
-			{
-				*player = line[0] - '0';
-			}
-			else if (indexY == BOARD_SIZE + 1)
-			{
-				whiteTime = chrono::duration<double>(stod(line));
-			}
-			else if (indexY == BOARD_SIZE + 2)
-			{
-				blackTime = chrono::duration<double>(stod(line));
-			}
-			indexY++;
+			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+			whitePawns.push_back(pawn);
 		}
 	}
+	else
+	{
+		blackPieces.push_back(piece);
+		// If the piece is a pawn, also add it to corresponding pawn vector
+		if (piece->getDisplayedChar() == 'P')
+		{
+			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+			blackPawns.push_back(pawn);
+		}
+	}
+}
 
-	loadBoardFromString(savedBoard);
+void Board::removePiece(Piece* piece)
+{
+	if (piece->getColor() == 0)
+	{
+		vector<Piece*>::iterator position = find(whitePieces.begin(), whitePieces.end(), piece);
+		whitePieces.erase(position);
+		// If the piece is a pawn, also remove it from corresponding pawn vector
+		if (piece->getDisplayedChar() == 'P')
+		{
+			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+			vector<PawnPiece*>::iterator position = find(whitePawns.begin(), whitePawns.end(), pawn);
+			whitePawns.erase(position);
+		}
+	}
+	else
+	{
+		vector<Piece*>::iterator position = find(blackPieces.begin(), blackPieces.end(), piece);
+		blackPieces.erase(position);
+		// If the piece is a pawn, also remove it from corresponding pawn vector
+		if (piece->getDisplayedChar() == 'P')
+		{
+			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
+			vector<PawnPiece*>::iterator position = find(blackPawns.begin(), blackPawns.end(), pawn);
+			blackPawns.erase(position);
+		}
+	}
 }
 
 vector<Piece*> Board::getPieces(int color)
@@ -295,54 +422,6 @@ vector<PawnPiece*> Board::getPawns(int color)
 	}
 }
 
-void Board::addPiece(Piece* piece)
-{
-	if (piece->getColor() == 0)
-	{
-		whitePieces.push_back(piece);
-		if (piece->getDisplayedChar() == 'P')
-		{
-			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
-			whitePawns.push_back(pawn);
-		}
-	}
-	else
-	{
-		blackPieces.push_back(piece);
-		if (piece->getDisplayedChar() == 'P')
-		{
-			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
-			blackPawns.push_back(pawn);
-		}
-	}
-}
-
-void Board::removePiece(Piece* piece)
-{
-	if (piece->getColor() == 0)
-	{
-		vector<Piece*>::iterator position = find(whitePieces.begin(), whitePieces.end(), piece);
-		whitePieces.erase(position);
-		if (piece->getDisplayedChar() == 'P')
-		{
-			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
-			vector<PawnPiece*>::iterator position = find(whitePawns.begin(), whitePawns.end(), pawn);
-			whitePawns.erase(position);
-		}
-	}
-	else
-	{
-		vector<Piece*>::iterator position = find(blackPieces.begin(), blackPieces.end(), piece);
-		blackPieces.erase(position);
-		if (piece->getDisplayedChar() == 'P')
-		{
-			PawnPiece* pawn = dynamic_cast<PawnPiece*>(piece);
-			vector<PawnPiece*>::iterator position = find(blackPawns.begin(), blackPawns.end(), pawn);
-			blackPawns.erase(position);
-		}
-	}
-}
-
 void Board::clearEnPassant(int color)
 {
 	vector<PawnPiece*> pawns = getPawns(color);
@@ -355,51 +434,38 @@ void Board::clearEnPassant(int color)
 	}
 }
 
-void Board::checkAllColorPieceMoves(int color)
-{
-	if (color == 0)
-	{
-		for (int i = 0; i < whitePieces.size(); i++)
-		{
-			cout << whitePieces[i]->getDisplayedChar() << " (W) at " << whitePieces[i]->getPosition()[0] << "," << whitePieces[i]->getPosition()[1] << "\n";
-			vector<vector<int>> moves = whitePieces[i]->getMoves(spaces);
-			for (int j = 0; j < moves.size(); j++)
-			{
-				cout << "\t" << moves[j][0] << " " << moves[j][1] << "\n";
-			}
-		}
-	}
-	else
-	{
-		for (int i = 0; i < blackPieces.size(); i++)
-		{
-			cout << blackPieces[i]->getDisplayedChar() << " (B) at " << blackPieces[i]->getPosition()[0] << "," << blackPieces[i]->getPosition()[1] << "\n";
-			vector<vector<int>> moves = blackPieces[i]->getMoves(spaces);
-			for (int j = 0; j < moves.size(); j++)
-			{
-				cout << "\t" << moves[j][0] << " " << moves[j][1] << "\n";
-			}
-		}
-	}
-}
-
 void Board::printBoard(int color)
 {
+	// Clear console
 	system("CLS");
+
+	// Get console HANDLE
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	// Get base color of console
 	CONSOLE_SCREEN_BUFFER_INFO baseColor;
 	GetConsoleScreenBufferInfo(hConsole, &baseColor);
+
+	// Loop through board y
 	for (int y = 0; y < BOARD_SIZE * BOARD_DISPLAY_MAGNITUDE; y++)
 	{
+		// Add new line if we aren't on first line
 		if (y != 0)
 		{
 			cout << "\n";
 		}
+
+		// Checks if row will be empty
 		bool emptyRow = ((y - BOARD_DISPLAY_MAGNITUDE / 2) % BOARD_DISPLAY_MAGNITUDE) != 0;
+
+		// Loop through board x
 		for (int x = 0; x < BOARD_SIZE * BOARD_DISPLAY_MAGNITUDE; x++)
 		{
+			// Get x and y position of piece
 			int pieceX = x / BOARD_DISPLAY_MAGNITUDE;
 			int pieceY = y / BOARD_DISPLAY_MAGNITUDE;
+
+			// Flip if we want to display in other orientation
 			if (color == 0)
 			{
 				pieceY = (BOARD_SIZE - 1) - pieceY;
@@ -408,10 +474,12 @@ void Board::printBoard(int color)
 			{
 				pieceX = (BOARD_SIZE - 1) - pieceX;
 			}
-			Piece *piecePtr = spaces[pieceX][pieceY].getPiecePtr();
 
+	
+			Piece *piecePtr = spaces[pieceX][pieceY].getPiecePtr();
 			char piece;
 			int pieceColor;
+			// Check if space has a piece
 			if (piecePtr)
 			{
 				piece = piecePtr->getDisplayedChar();
@@ -425,28 +493,31 @@ void Board::printBoard(int color)
 
 			if (spaces[x / BOARD_DISPLAY_MAGNITUDE][y / BOARD_DISPLAY_MAGNITUDE].getColor() == 1)
 			{
-				// Light green
+				// Red background and white foreground
 				SetConsoleTextAttribute(hConsole, 0xCF);
 			}
 			else
 			{
-				// Gray
+				// White background and red foreground
 				SetConsoleTextAttribute(hConsole, 0xFC);
 			}
 			if (!emptyRow)
 			{
 				bool placeEmpty = (x - BOARD_DISPLAY_MAGNITUDE / 2) % BOARD_DISPLAY_MAGNITUDE != 0;
+				// If we aren't on an empty x position, change console colors and display piece
 				if (!placeEmpty)
 				{
 					if (piece != ' ')
 					{
 						if (pieceColor == 1)
 						{
-							SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE | BACKGROUND_BLACK);
+							// Black background and dark white foreground
+							SetConsoleTextAttribute(hConsole, 0x07);
 						}
 						else if (pieceColor == 0)
 						{
-							SetConsoleTextAttribute(hConsole, FOREGROUND_BLACK | BACKGROUND_WHITE);
+							// Dark white background and black foreground
+							SetConsoleTextAttribute(hConsole, 0x70);
 						}
 					}
 					cout << " " << piece << " ";
@@ -458,7 +529,7 @@ void Board::printBoard(int color)
 			}
 			else
 			{
-				// Display coordinates with certain checks
+				// If we are on an empty row, do some checks to display coordinates
 				if (x == 0 && (y + 1) % BOARD_DISPLAY_MAGNITUDE == 0)
 				{
 					cout << " " << pieceY + 1 << " ";
@@ -467,6 +538,7 @@ void Board::printBoard(int color)
 				{
 					cout << " " << char('a' + pieceX) << " ";
 				}
+				// If we don't display coordinates, just put three spaces
 				else
 				{
 					cout << "   ";
@@ -474,36 +546,13 @@ void Board::printBoard(int color)
 			}
 		}
 	}
+	// Set console color back to original color
 	SetConsoleTextAttribute(hConsole, baseColor.wAttributes);
 	cout << "\n";
 }
 
-vector<string> Board::getMoveHistory()
+void Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector<int> destination)
 {
-	return moveHistory;
-}
-
-void Board::getPieceMoves(vector<int> piecePosition)
-{
-	Piece* piecePtr = spaces[piecePosition[0]][piecePosition[1]].getPiecePtr();
-
-	if (piecePtr)
-	{
-		vector<vector<int>> movement = piecePtr->getMoves(spaces);
-		for (int i = 0; i < movement.size(); i++)
-		{
-			cout << "Move : " << movement[i][0] << " " << movement[i][1] << "\n";
-		}
-	}
-	else
-	{
-		cout << "No piece at this location!";
-	}
-}
-
-bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector<int> destination)
-{
-	bool success = false;
 	Piece* pieceToMove = spaces[pieceToMovePosition[0]][pieceToMovePosition[1]].getPiecePtr();
 	if (pieceToMove)
 	{
@@ -544,7 +593,7 @@ bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 									}
 									if (willPutInCheck(kingPiece, vector<int>{pieceToMovePosition[0] + castleX, pieceToMovePosition[1]}))
 									{
-										break;
+										throw new invalid_move("Cannot castle if one of the spaces the king goes through will put it in check!");
 									}
 								}
 							}
@@ -555,29 +604,32 @@ bool Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 					{
 						check = false;
 						movePiece(pieceToMove, destination);
-						success = true;
+						return;
 					}
 					else
 					{
-						break;
+						if (check)
+						{
+							throw new invalid_move("The king would still be in check!");
+						}
+						else
+						{
+							throw new invalid_move("This move would put the king in check!");
+						}
 					}
 				}
-				else
-				{
-					//throw invalid_move("This piece cannot make this move!");
-				}
 			}
+			throw new invalid_move("This piece cannot make this move!");
 		}
 		else
 		{
-			cout << "Cannot move another player's piece!";
+			throw new invalid_move("Cannot move another player's piece!");
 		}
 	}
 	else
 	{
-		cout << "No piece at this position!";
+		throw new invalid_move("No piece at this position!");
 	}
-	return success;
 }
 
 bool Board::willPutInCheck(Piece* pieceToMove, std::vector<int> destination)
@@ -619,6 +671,7 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 	{
 		removePiece(currentPiece);
 	}
+
 	string move;
 	if (pieceToMove->getColor() == 0)
 	{
@@ -784,6 +837,11 @@ bool Board::checkForCheckmate(int player)
 	return checkmate;
 }
 
+vector<string> Board::getMoveHistory()
+{
+	return moveHistory;
+}
+
 bool Board::isCheck()
 {
 	return check;
@@ -794,7 +852,7 @@ bool Board::isCheckmate()
 	return checkmate;
 }
 
-void Board::setTime(int color)
+chrono::duration<double> Board::setTime(int color)
 {
 	chrono::duration<double> time = chrono::system_clock::now() - startTime;
 	if (color == 0)
@@ -806,16 +864,17 @@ void Board::setTime(int color)
 		blackTime += time;
 	}
 	startTime = chrono::system_clock::now();
+	return time;
 }
 
-double Board::getTime(int color)
+chrono::duration<double> Board::getTime(int color)
 {
 	if (color == 0)
 	{
-		return whiteTime.count();
+		return whiteTime;
 	}
 	else
 	{
-		return blackTime.count();
+		return blackTime;
 	}
 }
