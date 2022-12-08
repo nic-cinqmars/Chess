@@ -123,14 +123,23 @@ int main()
 				lastTurnTime = board.setTime(playerTurn);
 			}
 		} while (!moveWorked);
-	} while (!board.isCheckmate());
+	} while (!board.isCheckmate() && !board.isStalemate());
 
 	board.printBoard(playerTurn);
+
+	if (board.isCheckmate())
+	{
+		cout << "Checkmate!\n";
+	}
+	else if (board.isStalemate())
+	{
+		cout << "Stalemate!\n";
+	}
 
 	chrono::duration<double> whiteTime = board.getTime(0);
 	chrono::duration<double> blackTime = board.getTime(1);
 	chrono::duration<double> totalTime = whiteTime + blackTime;
-	cout << "Checkmate!\n";
+
 	cout << "Game lasted " << GetTimeFromDuration(totalTime) << ".\n";
 	cout << "White took " << GetTimeFromDuration(whiteTime) << " to think.\n";
 	cout << "Black took " << GetTimeFromDuration(blackTime) << " to think.\n\n";

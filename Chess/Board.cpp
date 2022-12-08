@@ -222,6 +222,26 @@ void Board::loadBoardFromString(string board[BOARD_SIZE][BOARD_SIZE])
 			}
 		}
 	}
+
+	bool isCheck = false;
+	for (int i = 0; i < 2; i++)
+	{
+		vector<Piece*> pieces = getPieces(i);
+		for (int j = 0; j < pieces.size(); j++)
+		{
+			isCheck = pieces[j]->checkForCheck(spaces);
+			if (isCheck)
+			{
+				break;
+			}
+		}
+		if (isCheck)
+		{
+			break;
+		}
+	}
+
+	check = isCheck;
 }
 
 void Board::createNewBoard()
@@ -237,7 +257,8 @@ void Board::createNewBoard()
 	startTime = chrono::system_clock::now();
 	whiteTime = chrono::duration<double>(0);
 	blackTime = chrono::duration<double>(0);
-
+	check = false;
+	
 	initializeBoardSpaces();
 }
 
@@ -579,7 +600,7 @@ void Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 							{
 								if (check)
 								{
-									break;
+									throw new invalid_move("Cannot castle while in check!");
 								}
 								else
 								{
@@ -764,19 +785,24 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 
 	pieceToMove->move(spaces, newPosition);
 
+	int otherPlayer;
+	if (pieceToMove->getColor() == 0)
+	{
+		otherPlayer = 1;
+	}
+	else
+	{
+		otherPlayer = 0;
+	}
+
 	check = pieceToMove->checkForCheck(spaces);
 	if (check)
 	{
-		int otherPlayer;
-		if (pieceToMove->getColor() == 0)
-		{
-			otherPlayer = 1;
-		}
-		else
-		{
-			otherPlayer = 0;
-		}
-		checkmate = checkForCheckmate(otherPlayer);
+		checkmate = checkForAnyMove(otherPlayer);
+	}
+	else
+	{
+		stalemate = checkForAnyMove(otherPlayer);
 	}
 }
 
@@ -814,27 +840,27 @@ Piece* Board::promotePawn(Piece* pawn)
 	return newPiece;
 }
 
-bool Board::checkForCheckmate(int player)
+bool Board::checkForAnyMove(int player)
 {
-	bool checkmate = true;
+	bool noMoves = true;
 	vector<Piece*> currentPlayerPieces = getPieces(player);
 	for (int i = 0; i < currentPlayerPieces.size(); i++)
 	{
-		if (!checkmate)
+		if (!noMoves)
 		{
 			break;
 		}
 		vector<vector<int>> currentPieceMoves = currentPlayerPieces[i]->getMoves(spaces);
 		for (int j = 0; j < currentPieceMoves.size(); j++)
 		{
-			checkmate = willPutInCheck(currentPlayerPieces[i], currentPieceMoves[j]);
-			if (!checkmate)
+			noMoves = willPutInCheck(currentPlayerPieces[i], currentPieceMoves[j]);
+			if (!noMoves)
 			{
 				break;
 			}
 		}
 	}
-	return checkmate;
+	return noMoves;
 }
 
 vector<string> Board::getMoveHistory()
@@ -850,6 +876,11 @@ bool Board::isCheck()
 bool Board::isCheckmate()
 {
 	return checkmate;
+}
+
+bool Board::isStalemate()
+{
+	return stalemate;
 }
 
 chrono::duration<double> Board::setTime(int color)

@@ -31,6 +31,7 @@ class Board
 
 	bool check;
 	bool checkmate;
+	bool stalemate;
 
 	std::vector<std::string> moveHistory;
 
@@ -68,8 +69,9 @@ class Board
 	// Returns the piece that a player wants to promote a pawn to.
 	Piece* promotePawn(Piece* pawn);
 
-	// Checks if the specified player is in checkmate.
-	bool checkForCheckmate(int player);
+	// Checks if the specified player has any legal moves.
+	// Used for checking for a checkmate or stalemate.
+	bool checkForAnyMove(int player);
 
 public:
 	// Creates a new Board object with a default chess board and default values.
@@ -101,6 +103,9 @@ public:
 
 	// Returns the value of the checkmate variable.
 	bool isCheckmate();
+
+	// Returns the value of the stalemate variable.
+	bool isStalemate();
 
 	// Adds the time it took for a player to make their move and returns it.
 	std::chrono::duration<double> setTime(int color);
