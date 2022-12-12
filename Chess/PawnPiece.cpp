@@ -41,7 +41,7 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 			}
 		}
 
-		// Check if other color piece on diagonal
+		// Check for other color piece on diagonal
 		int diagonalRightX = currentPosX + 1;
 		int diagonalLeftX = currentPosX - 1;
 		int diagonalY = currentPosY + 1;
@@ -119,7 +119,7 @@ vector<vector<int>> PawnPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 			}
 		}
 
-		// Check if other color piece on diagonal
+		// Check for other color piece on diagonal
 		int diagonalRightX = currentPosX + 1;
 		int diagonalLeftX = currentPosX - 1;
 		int diagonalY = currentPosY - 1;

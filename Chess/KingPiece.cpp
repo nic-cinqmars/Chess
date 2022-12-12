@@ -58,6 +58,7 @@ vector<vector<int>> KingPiece::getMoves(BoardSpace board[BOARD_SIZE][BOARD_SIZE]
 		}
 	}
 
+	// Check if castling move is possible
 	if (!hasMoved)
 	{
 		RookPiece* leftRook = dynamic_cast<RookPiece*>(board[0][currentPosY].getPiecePtr());

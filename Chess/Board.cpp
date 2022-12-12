@@ -574,36 +574,45 @@ void Board::printBoard(int color)
 
 void Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector<int> destination)
 {
+	// Tries to get the piece the player wants to move
 	Piece* pieceToMove = spaces[pieceToMovePosition[0]][pieceToMovePosition[1]].getPiecePtr();
 	if (pieceToMove)
 	{
+		// Gets the color of the piece and checks if it is the same as the player
 		int pieceColor = pieceToMove->getColor();
 		if (pieceColor == player)
 		{
+			// Gets the moves that this piece can do and loop through each one
 			vector<vector<int>> pieceMoves = pieceToMove->getMoves(spaces);
 			for (int i = 0; i < pieceMoves.size(); i++)
 			{
 				int moveX = pieceMoves[i][0];
 				int moveY = pieceMoves[i][1];
+				// Checks if the destination specified by player is the one of the move we are currently checking
 				if (destination[0] == moveX && destination[1] == moveY)
 				{
-					// Check for castling rules
+					// Special case of castling move
+					// First check if the piece we are moving is a king
 					KingPiece* kingPiece = dynamic_cast<KingPiece*>(pieceToMove);
 					if (kingPiece)
 					{
-						// Check for castle
+						// If the king hasn't moved yet, we have to check for castling
 						if (!kingPiece->getHasMoved())
 						{
+							// The direction of the possible castle (left or right)
 							int castleX = destination[0] - pieceToMovePosition[0];
-							// Castling
+							// If the move on the X for a king is two spaces, we know we are attempting to castle
 							if (abs(castleX) == 2)
 							{
+								// Check if we are in check before
 								if (check)
 								{
 									throw new invalid_move("Cannot castle while in check!");
 								}
 								else
 								{
+									// This next part is used to check if we will be put in check while castling
+									// We will therefore check if moving the king one place (to the left or right) will put it in check
 									if (castleX > 0)
 									{
 										castleX--;
@@ -612,6 +621,7 @@ void Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 									{
 										castleX++;
 									}
+									// Check if this position will put the king in check and throw an exception if it is the case
 									if (willPutInCheck(kingPiece, vector<int>{pieceToMovePosition[0] + castleX, pieceToMovePosition[1]}))
 									{
 										throw new invalid_move("Cannot castle if one of the spaces the king goes through will put it in check!");
@@ -621,18 +631,23 @@ void Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 						}
 					}
 
+					// Check if the move will not put the player in check
 					if (!willPutInCheck(pieceToMove, destination))
 					{
+						// Reset check to false, since we are no longer in check at this point
 						check = false;
+						// Call movePiece which will actually move the piece
 						movePiece(pieceToMove, destination);
 						return;
 					}
 					else
 					{
+						// If we are currently in check, move would still put king in check
 						if (check)
 						{
 							throw new invalid_move("The king would still be in check!");
 						}
+						// If we aren't in check, move would put the king in check
 						else
 						{
 							throw new invalid_move("This move would put the king in check!");
@@ -640,6 +655,7 @@ void Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 					}
 				}
 			}
+			// If we have checked every move in a piece's possible moves and none of them worked, throw an exception
 			throw new invalid_move("This piece cannot make this move!");
 		}
 		else
@@ -656,6 +672,7 @@ void Board::attemptPieceMove(vector<int> pieceToMovePosition, int player, vector
 bool Board::willPutInCheck(Piece* pieceToMove, std::vector<int> destination)
 {
 	bool check = false;
+	// Get the other color's pieces
 	vector<Piece*> otherColorPieces;
 	if (pieceToMove->getColor() == 0)
 	{
@@ -666,10 +683,17 @@ bool Board::willPutInCheck(Piece* pieceToMove, std::vector<int> destination)
 		otherColorPieces = whitePieces;
 	}
 
+	// Create a copy of the current board
 	BoardSpace tempSpaces[BOARD_SIZE][BOARD_SIZE];
 	copy(&spaces[0][0], &spaces[0][0] + BOARD_SIZE * BOARD_SIZE, &tempSpaces[0][0]);
+
+	// Create a copy of the pieceToMove
 	Piece* pieceCopy = pieceToMove->clone();
+
+	// Move the copy to the new destination
 	pieceCopy->move(tempSpaces, destination);
+
+	// Loop through other color pieces and check if they put the king in check
 	for (int i = 0; i < otherColorPieces.size(); i++)
 	{
 		Piece* currentPiece = otherColorPieces[i];
@@ -682,17 +706,20 @@ bool Board::willPutInCheck(Piece* pieceToMove, std::vector<int> destination)
 			}
 		}
 	}
+	// Return if the move puts the player in check
 	return check;
 }
 
 void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 {
+	// Try to get the piece at destination position and remove it if it exists
 	Piece* currentPiece = spaces[newPosition[0]][newPosition[1]].getPiecePtr();
 	if (currentPiece)
 	{
 		removePiece(currentPiece);
 	}
 
+	// Add description to moveHistory
 	string move;
 	if (pieceToMove->getColor() == 0)
 	{
@@ -716,10 +743,13 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 
 	moveHistory.push_back(move);
 
+	// If pieceToMove is a pawn, we have to check for promotion and en passant
 	if (pieceToMove->getDisplayedChar() == 'P')
 	{
+		// Different logic depending on pawn color
 		if (pieceToMove->getColor() == 0)
 		{
+			// Check for promotion
 			if (newPosition[1] == BOARD_SIZE - 1)
 			{
 				removePiece(pieceToMove);
@@ -728,6 +758,7 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 			}
 			else
 			{
+				// Check for en passant
 				PawnPiece* enPassantPawn = dynamic_cast<PawnPiece*>(spaces[newPosition[0]][newPosition[1] - 1].getPiecePtr());
 				if (enPassantPawn)
 				{
@@ -741,6 +772,7 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 		}
 		else
 		{
+			// Check for promotion
 			if (newPosition[1] == 0)
 			{
 				removePiece(pieceToMove);
@@ -749,6 +781,7 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 			}
 			else
 			{
+				// Check for en passant
 				PawnPiece* enPassantPawn = dynamic_cast<PawnPiece*>(spaces[newPosition[0]][newPosition[1] + 1].getPiecePtr());
 				if (enPassantPawn)
 				{
@@ -761,6 +794,7 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 			}
 		}
 	}
+	// If pieceToMove is a king, we have to check castling and switch rook
 	else if (pieceToMove->getDisplayedChar() == 'K')
 	{
 		// Check if move was castle move
@@ -783,6 +817,7 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 		}
 	}
 
+	// Move the piece
 	pieceToMove->move(spaces, newPosition);
 
 	int otherPlayer;
@@ -795,13 +830,16 @@ void Board::movePiece(Piece* pieceToMove, vector<int> newPosition)
 		otherPlayer = 0;
 	}
 
+	// Check if the piece's move puts the king in check
 	check = pieceToMove->checkForCheck(spaces);
 	if (check)
 	{
+		// If we are in check, check for checkmate
 		checkmate = checkForAnyMove(otherPlayer);
 	}
 	else
 	{
+		// If we are not in check, check for stalemate
 		stalemate = checkForAnyMove(otherPlayer);
 	}
 }
@@ -844,22 +882,28 @@ bool Board::checkForAnyMove(int player)
 {
 	bool noMoves = true;
 	vector<Piece*> currentPlayerPieces = getPieces(player);
+	// Loop through all current player's pieces
 	for (int i = 0; i < currentPlayerPieces.size(); i++)
 	{
 		if (!noMoves)
 		{
+			// If we found a move that will not put player in check, we have a move and break out this loop
 			break;
 		}
 		vector<vector<int>> currentPieceMoves = currentPlayerPieces[i]->getMoves(spaces);
+		// Loop through current piece moves
 		for (int j = 0; j < currentPieceMoves.size(); j++)
 		{
+			// Check if current move will put player in check
 			noMoves = willPutInCheck(currentPlayerPieces[i], currentPieceMoves[j]);
 			if (!noMoves)
 			{
+				// If we found a move that will not put player in check, we have a move and break out this loop
 				break;
 			}
 		}
 	}
+	// Return if the player can make a valid move or not
 	return noMoves;
 }
 

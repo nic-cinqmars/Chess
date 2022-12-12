@@ -23,6 +23,7 @@ int playerTurn = 0;
 
 int main()
 {
+	// Set initial console
 	HWND console = GetConsoleWindow();
 	RECT r;
 	GetWindowRect(console, &r);
@@ -87,7 +88,6 @@ int main()
 		}
 		bool moveWorked = false;
 		do {
-			//board.checkAllColorPieceMoves(0);
 			vector<int> pieceToMovePosition;
 			vector<int> positionToGo;
 			try
@@ -225,13 +225,13 @@ string GetTimeFromDuration(chrono::duration<double> time)
 	return timeString;
 }
 
-//Clear extra input from cin
+// Clear extra input from cin
 void IgnoreLine()
 {
 	cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
-
+// Get position from input
 vector<int> GetPosition()
 {
 	while (true)
@@ -249,6 +249,7 @@ vector<int> GetPosition()
 				}
 				if (toupper(input[0]) == 'L')
 				{
+					IgnoreLine();
 					throw new load_game();
 				}
 			}
